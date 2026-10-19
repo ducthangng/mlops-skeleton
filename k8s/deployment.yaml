@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: router
+spec:
+  replicas: 2                      # always have 2 route runing
+  selector:
+    matchLabels: { app: router }   # Deployment manage pod name app=router
+  template:
+    metadata:
+      labels: { app: router }      # Create this label everytime a new pod is created
+    spec:
+      containers:
+        - name: router
+          image: router:0.3
+          env:
+            - name: REDIS_URL
+              value: redis://redis:6379/0 # redis is the name of the service
+          imagePullPolicy: IfNotPresent   # If present then just use it
+          ports:
+            - containerPort: 8000
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }  # Request CPU
+            limits:   { cpu: "1",  memory: 1Gi }    # Set limit
+          startupProbe:              # Health check, 60s
+            httpGet: { path: /healthz, port: 8000 }
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:            # Ready yet? only send request to readied service
+            httpGet: { path: /healthz, port: 8000 }
+            periodSeconds: 5
+          livenessProbe:             # Alive? 
+            httpGet: { path: /healthz, port: 8000 }
+            periodSeconds: 10
+            failureThreshold: 3

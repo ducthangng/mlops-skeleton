@@ -1,0 +1,100 @@
+{"prompt": "how to export uv installed environment to requirements.txt", "label": "code"}
+{"prompt": "TypeError: Cannot read properties of undefined (reading 'id')", "label": "code"}
+{"prompt": "git revert vs git reset hard", "label": "code"}
+{"prompt": "golang goroutine memory leak pattern", "label": "code"}
+{"prompt": "python list comprehension vs map speed", "label": "code"}
+{"prompt": "docker build error exit code 127", "label": "code"}
+{"prompt": "kubectl get pods crashloopbackoff debugging", "label": "code"}
+{"prompt": "fix sql unique constraint violation error", "label": "code"}
+{"prompt": "unhandled promise rejection warning nodejs", "label": "code"}
+{"prompt": "how to invalidate redis key on TTL", "label": "code"}
+{"prompt": "cannot find module '@components/Button'", "label": "code"}
+{"prompt": "panic: runtime error: invalid memory address or nil pointer dereference", "label": "code"}
+{"prompt": "convert curl command to python requests", "label": "code"}
+{"prompt": "rust borrow checker parameter lifetime mismatch", "label": "code"}
+{"prompt": "tailing logs in systemctl service", "label": "code"}
+{"prompt": "fastapi background tasks example", "label": "code"}
+{"prompt": "css tailwind center absolute element", "label": "code"}
+{"prompt": "fatal: refusing to merge unrelated histories", "label": "code"}
+{"prompt": "why does dividing 0 is not exists", "label": "math"}
+{"prompt": "solve for x: 3x^2 - 12x + 9 = 0", "label": "math"}
+{"prompt": "what is the integral of e^(-x^2)dx from 0 to infinity", "label": "math"}
+{"prompt": "prove that the sum of angles in a triangle is 180 degrees", "label": "math"}
+{"prompt": "how to calculate standard deviation by hand", "label": "math"}
+{"prompt": "derivative of ln(x^2 + 1)", "label": "math"}
+{"prompt": "what is the probability of rolling at least one 6 in 4 dice rolls", "label": "math"}
+{"prompt": "eigenvalues of 2x2 identity matrix", "label": "math"}
+{"prompt": "is 91 a prime number", "label": "math"}
+{"prompt": "explain Bayes theorem in simple terms", "label": "math"}
+{"prompt": "limit as x goes to 0 of sin(x)/x", "label": "math"}
+{"prompt": "convert 45 degrees to radians", "label": "math"}
+{"prompt": "find the determinant of [[2, 5], [1, 3]]", "label": "math"}
+{"prompt": "what is the fibonacci sequence formula", "label": "math"}
+{"prompt": "calculate log base 2 of 1024", "label": "math"}
+{"prompt": "pythagorean theorem formula", "label": "math"}
+{"prompt": "tell me something fun today", "label": "chitchat"}
+{"prompt": "hey what's up", "label": "chitchat"}
+{"prompt": "who made you", "label": "chitchat"}
+{"prompt": "i'm feeling tired and burnt out", "label": "chitchat"}
+{"prompt": "what is your favorite movie", "label": "chitchat"}
+{"prompt": "tell me a joke about programmers", "label": "chitchat"}
+{"prompt": "good morning, have a great day!", "label": "chitchat"}
+{"prompt": "are you human or AI?", "label": "chitchat"}
+{"prompt": "what should i eat for lunch", "label": "chitchat"}
+{"prompt": "do you have any hobbies", "label": "chitchat"}
+{"prompt": "recommend a cool place to visit", "label": "chitchat"}
+{"prompt": "bored, talk to me", "label": "chitchat"}
+{"prompt": "thanks for the help!", "label": "chitchat"}
+{"prompt": "what is the meaning of life", "label": "chitchat"}
+{"prompt": "how is the weather in general", "label": "chitchat"}
+{"prompt": "bye see you later", "label": "chitchat"}
+{"prompt": "git stash pop conflict how to cancel", "label": "code"}
+{"prompt": "SSL: CERTIFICATE_VERIFY_FAILED python urllib", "label": "code"}
+{"prompt": "how to mock fetch in vitest", "label": "code"}
+{"prompt": "docker compose environment variables not loading", "label": "code"}
+{"prompt": "SQL syntax error near WHERE clause", "label": "code"}
+{"prompt": "goroutine leak detection tool golang", "label": "code"}
+{"prompt": "Invalid state update error in React useEffect", "label": "code"}
+{"prompt": "how to center image vertically in tailwind css", "label": "code"}
+{"prompt": "pandas replace NaN with zero in specific column", "label": "code"}
+{"prompt": "nginx 502 bad gateway troubleshooting step", "label": "code"}
+{"prompt": "Error: ENOSPC: System limit for number of file watchers reached", "label": "code"}
+{"prompt": "convert json array to csv file typescript", "label": "code"}
+{"prompt": "python deepcopy vs shallow copy example", "label": "code"}
+{"prompt": "how to add CORS headers in FastAPI middleware", "label": "code"}
+{"prompt": "fatal: refusing to merge unrelated histories git pull", "label": "code"}
+{"prompt": "what is 15% of 250", "label": "math"}
+{"prompt": "integrate x * cos(x) dx using integration by parts", "label": "math"}
+{"prompt": "find the standard deviation of [12, 15, 18, 20]", "label": "math"}
+{"prompt": "solve equation 2x + 5 = 17", "label": "math"}
+{"prompt": "what is the volume of a sphere with radius 5cm", "label": "math"}
+{"prompt": "formula for combinations n choose k", "label": "math"}
+{"prompt": "is 0 an even or odd number", "label": "math"}
+{"prompt": "matrix multiplication 2x2 by 2x1 example", "label": "math"}
+{"prompt": "derivative of arctan(x)", "label": "math"}
+{"prompt": "calculate log2 of 256", "label": "math"}
+{"prompt": "if a coin is tossed 3 times what is chance of getting 2 heads", "label": "math"}
+{"prompt": "simplify (x^2 - 4) / (x - 2)", "label": "math"}
+{"prompt": "what is the sum of interior angles of a hexagon", "label": "math"}
+{"prompt": "good night, speak to you tomorrow", "label": "chitchat"}
+{"prompt": "what is your favorite movie character", "label": "chitchat"}
+{"prompt": "how are you feeling today", "label": "chitchat"}
+{"prompt": "tell me a dark humor joke", "label": "chitchat"}
+{"prompt": "can you sing a song for me", "label": "chitchat"}
+{"prompt": "what do you think about cats vs dogs", "label": "chitchat"}
+{"prompt": "give me a cool nickname", "label": "chitchat"}
+{"prompt": "i had a really bad day at work", "label": "chitchat"}
+{"prompt": "are you smarter than humans", "label": "chitchat"}
+{"prompt": "what's your opinion on remote working", "label": "chitchat"}
+{"prompt": "surprise me with a weird fact", "label": "chitchat"}
+{"prompt": "happy birthday to me!", "label": "chitchat"}
+{"prompt": "TypeError: 'dict' object is not callable", "label": "code"}
+{"prompt": "how to undo last commit without losing changes", "label": "code"}
+{"prompt": "npm ERR! code ERESOLVE unable to resolve dependency tree", "label": "code"}
+{"prompt": "python format float to 2 decimal places", "label": "code"}
+{"prompt": "find roots of x^2 - 5x + 6 = 0", "label": "math"}
+{"prompt": "what is the derivative of e^(3x)", "label": "math"}
+{"prompt": "convert 3pi/4 to degrees", "label": "math"}
+{"prompt": "what is your favorite flavor of ice cream", "label": "chitchat"}
+{"prompt": "tell me a riddle", "label": "chitchat"}
+{"prompt": "nice talking to you!", "label": "chitchat"}
