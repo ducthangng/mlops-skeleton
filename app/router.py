@@ -1,6 +1,7 @@
+import hashlib
+
 import numpy as np
 import yaml
-import hashlib
 from sentence_transformers import SentenceTransformer
 
 

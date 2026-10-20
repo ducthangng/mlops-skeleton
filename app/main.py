@@ -21,8 +21,7 @@ state: dict = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     state["router"] = SemanticRouter(MODEL_NAME, ROUTES_PATH)
-    with open(ROUTES_PATH, "rb") as f:
-        state["cfg_ver"] = hashlib.sha256(f.read()).hexdigest()[:12] # set key for routes.yaml. Different key will invalide cache.
+    state["cfg_ver"] = state["router"].version
     state["cache"] = (
         redis.Redis.from_url(REDIS_URL, socket_timeout=0.05, socket_connect_timeout=0.05)
         if REDIS_URL else None
