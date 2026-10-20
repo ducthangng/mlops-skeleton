@@ -1,9 +1,11 @@
 import json
 from collections import Counter
+
 from app.router import SemanticRouter
 
 r = SemanticRouter("sentence-transformers/all-MiniLM-L6-v2", "routes.yaml")
-data = [json.loads(line) for line in open("evals/prompts.jsonl")]
+with open("evals/prompts.jsonl") as f:
+    data = [json.loads(line)["prompt"] for line in f]     # run.py: đổi tên biến thành data
 
 for strategy in ["centroid", "max"]:
     ok, errors = 0, Counter()

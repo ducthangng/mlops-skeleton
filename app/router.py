@@ -1,13 +1,18 @@
 import numpy as np
 import yaml
+import hashlib
 from sentence_transformers import SentenceTransformer
 
 
 class SemanticRouter:
     def __init__(self, model_name: str, config_path: str):
         self.model = SentenceTransformer(model_name, device="cpu")
-        with open(config_path) as f:
-            cfg = yaml.safe_load(f)
+        with open(config_path, "rb") as f:
+            raw = f.read()
+        cfg = yaml.safe_load(raw)
+        self.version = hashlib.sha256(raw).hexdigest()[:12]
+        # with open(config_path) as f:
+        #     cfg = yaml.safe_load(f)
         self.threshold = cfg["threshold"]
         self.default = cfg["default"]["target"]
 
