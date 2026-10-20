@@ -31,8 +31,8 @@ spec:
     }
   }
   environment {
-    REGISTRY    = 'ghcr.io/<username>'
-    GITOPS_REPO = 'github.com/<username>/router-gitops.git'
+    REGISTRY    = 'ghcr.io/ducthangng'
+    GITOPS_REPO = 'github.com/ducthangng/router-gitops.git'
   }
   triggers { pollSCM('H/2 * * * *') }      // GitHub không gọi được vào laptop, nên Jenkins tự đi hỏi mỗi 2 phút
   stages {
