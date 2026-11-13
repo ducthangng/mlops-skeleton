@@ -13,8 +13,8 @@ I built this to learn Kubernetes, CI/CD and MLOps from zero, on a laptop, by bre
 ```mermaid
 flowchart LR
     subgraph GitHub
-        APP[router-app<br/>code · Dockerfile · Jenkinsfile]
-        OPS[router-gitops<br/>Helm chart · Argo app]
+        APP[mlops-skeleton<br/>code · Dockerfile · Jenkinsfile]
+        OPS[mlops-router-gitops<br/>Helm chart · Argo app]
         REG[(GHCR<br/>images)]
     end
     subgraph Cluster["kind cluster (1 control-plane + 2 workers)"]
@@ -50,10 +50,10 @@ There is **no arrow from Jenkins into `ns: default`**. CI never touches the app'
 sequenceDiagram
     autonumber
     actor Me
-    participant App as router-app (Git)
+    participant App as mlops-skeleton (Git)
     participant J as Jenkins
     participant Reg as GHCR
-    participant Ops as router-gitops (Git)
+    participant Ops as mlops-router-gitops (Git)
     participant Argo as ArgoCD
     participant K8s as Cluster
     Me->>App: git push
@@ -88,7 +88,7 @@ flowchart LR
 4. If the best score is below `threshold`, the prompt falls back to `default`.
 
 ```yaml
-threshold: 0.30
+threshold: 0.40
 routes:
   - name: code
     target: { model: coder, temperature: 0.2, max_tokens: 1024 }
@@ -113,13 +113,13 @@ These are honest early numbers. Accuracy is low because the threshold hasn't bee
 ## Repo layout
 
 ```
-router-app/                    router-gitops/
+mlops-skeleton/                mlops-router-gitops/
 ├── app/        main.py        ├── charts/router/
 │               router.py      │   ├── Chart.yaml
 ├── routes.yaml                │   ├── values.yaml
 ├── evals/      prompts.jsonl  │   └── templates/  deployment · service · redis
-│               run.py         └── argocd/gw.yaml
-│               bench.py
+│               run.py         ├── argocd/gw.yaml
+│               bench.py       └── jenkins/values.yaml
 ├── tests/      test_routes_config.py
 ├── Dockerfile  (multi-stage, model baked in)
 └── Jenkinsfile (k8s agent: python + kaniko)
@@ -130,8 +130,8 @@ router-app/                    router-gitops/
 ```bash
 kind create cluster --config kind-config.yaml
 helm install argocd argo/argo-cd -n argocd --create-namespace
-helm install jenkins jenkins/jenkins -n jenkins --create-namespace -f jenkins-values.yaml
-kubectl apply -f router-gitops/argocd/gw.yaml      # ArgoCD takes it from here
+helm install jenkins jenkins/jenkins -n jenkins --create-namespace -f ../mlops-router-gitops/jenkins/values.yaml
+kubectl apply -f ../mlops-router-gitops/argocd/gw.yaml      # ArgoCD takes it from here
 kubectl port-forward svc/gw-router 8000:80
 curl -s localhost:8000/route -H 'content-type: application/json' \
   -d '{"prompt":"why does my go program deadlock"}'

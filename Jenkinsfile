@@ -32,7 +32,7 @@ spec:
   }
   environment {
     REGISTRY    = 'ghcr.io/ducthangng'
-    GITOPS_REPO = 'github.com/ducthangng/router-gitops.git'
+    GITOPS_REPO = 'github.com/ducthangng/mlops-router-gitops.git'
   }
   triggers { pollSCM('H/2 * * * *') }      // GitHub không gọi được vào laptop, nên Jenkins tự đi hỏi mỗi 2 phút
   stages {

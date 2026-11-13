@@ -2,9 +2,8 @@ import json
 import statistics
 import urllib.request
 
-# evals/bench.py và evals/run.py
 with open("evals/prompts.jsonl") as f:
-    prompts = [json.loads(line)["prompt"] for line in f]     # run.py: đổi tên biến thành data
+    prompts = [json.loads(line)["prompt"] for line in f]
 
 def call(p):
     req = urllib.request.Request(

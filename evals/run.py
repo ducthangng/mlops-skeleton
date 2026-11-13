@@ -5,7 +5,7 @@ from app.router import SemanticRouter
 
 r = SemanticRouter("sentence-transformers/all-MiniLM-L6-v2", "routes.yaml")
 with open("evals/prompts.jsonl") as f:
-    data = [json.loads(line)["prompt"] for line in f]     # run.py: đổi tên biến thành data
+    data = [json.loads(line) for line in f]   # each item: {"prompt", "label"}
 
 for strategy in ["centroid", "max"]:
     ok, errors = 0, Counter()
