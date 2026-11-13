@@ -11,3 +11,22 @@ test:
 
 lint:
 	uv run --with ruff ruff check app evals tests
+
+# ---------- AI gateway (gateway/ + web/) ----------
+.PHONY: gw-db gw-dev gw-web gw-test gw-build
+
+gw-db:
+	cd gateway && docker compose up -d postgres
+
+gw-dev:
+	cd gateway && uv run uvicorn gateway.main:app --port 8090 --reload
+
+gw-web:
+	cd web && npm run dev
+
+gw-test:
+	cd gateway && uv run pytest -q && uv run ruff check gateway tests examples
+	cd web && npm run typecheck
+
+gw-build:
+	cd web && npm run build

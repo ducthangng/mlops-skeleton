@@ -1,0 +1,30 @@
+# Local stack: Postgres + gateway (UI included). From this folder:
+#   docker compose up --build        -> http://localhost:8090
+# Put provider keys in gateway/.env (ANTHROPIC_API_KEY=..., OPENAI_API_KEY=..., GEMINI_API_KEY=...).
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway
+      POSTGRES_DB: gateway
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway"]
+      interval: 2s
+      retries: 20
+
+  gateway:
+    build: { context: .., dockerfile: gateway/Dockerfile }
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      GATEWAY_DATABASE_URL: postgresql+asyncpg://gateway:gateway@postgres:5432/gateway
+    ports: ["8090:8090"]
+    depends_on:
+      postgres: { condition: service_healthy }
+
+volumes:
+  pgdata:
