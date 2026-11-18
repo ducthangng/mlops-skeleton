@@ -23,6 +23,11 @@ SAMPLES = Path("tools/logtriage/samples")
     # real: agent pod stuck in ContainerCreating (missing ghcr-creds Secret), then aborted.
     # The console never names the Secret; the evidence is the Pending pod line.
     ("real_aborted_pod_pending.log", "unknown", "Pod [Pending]"),
+    # real: Kaniko memory request (256Mi) > limit (150Mi) -> API server rejects the agent pod
+    ("real_invalid_pod_spec.log", "unknown", "ERROR: Unable to create pod"),
+    ("real_test_drill01.log", "test", "FAILED tests/unit/test_classifier.py::test_tie_goes_to_first_route"),
+    ("real_lint_drill02.log", "lint", "app/cache.py:1:1"),
+    ("real_oom_drill11.log", "oom", "OOMKilled"),
 ])
 def test_classify_samples(name, category, needle):
     t = classify((SAMPLES / name).read_text())

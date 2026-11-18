@@ -1,0 +1,81 @@
+Started by user Jenkins Admin
+ > git rev-parse --resolve-git-dir /var/jenkins_home/caches/git-07737ad7042497b50198942d36711452/.git # timeout=10
+Setting origin to git://host.docker.internal/ml-ops-skeleton
+ > git config remote.origin.url git://host.docker.internal/ml-ops-skeleton # timeout=10
+Fetching origin...
+Fetching upstream changes from origin
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git config --get remote.origin.url # timeout=10
+ > git fetch --no-tags --force --progress -- origin +refs/heads/*:refs/remotes/origin/* # timeout=10
+Seen branch in repository origin/feat/cv-parity
+Seen branch in repository origin/main
+Seen 2 remote branches
+Obtained Jenkinsfile from 093ca1e2bd56b4837484dcc3ac453c568d1f8a49
+[Pipeline] Start of Pipeline
+[Pipeline] podTemplate
+[Pipeline] {
+[Pipeline] node
+ERROR: Unable to create pod kubernetes jenkins/router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf.
+Failure executing: POST at: https://kubernetes.default/api/v1/namespaces/jenkins/pods. Message: Pod "router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf" is invalid: spec.containers[2].resources.requests: Invalid value: "256Mi": must be less than or equal to memory limit of 150Mi. Received status: Status(apiVersion=v1, code=422, details=StatusDetails(causes=[StatusCause(field=spec.containers[2].resources.requests, message=Invalid value: "256Mi": must be less than or equal to memory limit of 150Mi, reason=FieldValueInvalid, additionalProperties={})], group=null, kind=Pod, name=router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf, retryAfterSeconds=null, uid=null, additionalProperties={}), kind=Status, message=Pod "router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf" is invalid: spec.containers[2].resources.requests: Invalid value: "256Mi": must be less than or equal to memory limit of 150Mi, metadata=ListMeta(_continue=null, remainingItemCount=null, resourceVersion=null, selfLink=null, additionalProperties={}), reason=Invalid, status=Failure, additionalProperties={}).
+ERROR: Failed to launch router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf
+io.fabric8.kubernetes.client.KubernetesClientException: Failure executing: POST at: https://kubernetes.default/api/v1/namespaces/jenkins/pods. Message: Pod "router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf" is invalid: spec.containers[2].resources.requests: Invalid value: "256Mi": must be less than or equal to memory limit of 150Mi. Received status: Status(apiVersion=v1, code=422, details=StatusDetails(causes=[StatusCause(field=spec.containers[2].resources.requests, message=Invalid value: "256Mi": must be less than or equal to memory limit of 150Mi, reason=FieldValueInvalid, additionalProperties={})], group=null, kind=Pod, name=router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf, retryAfterSeconds=null, uid=null, additionalProperties={}), kind=Status, message=Pod "router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf" is invalid: spec.containers[2].resources.requests: Invalid value: "256Mi": must be less than or equal to memory limit of 150Mi, metadata=ListMeta(_continue=null, remainingItemCount=null, resourceVersion=null, selfLink=null, additionalProperties={}), reason=Invalid, status=Failure, additionalProperties={}).
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.OperationSupport.requestFailure(OperationSupport.java:642)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.OperationSupport.requestFailure(OperationSupport.java:622)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.OperationSupport.assertResponseCode(OperationSupport.java:582)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.OperationSupport.lambda$handleResponse$0(OperationSupport.java:549)
+	at java.base/java.util.concurrent.CompletableFuture$UniApply.tryFire(CompletableFuture.java:667)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:531)
+	at java.base/java.util.concurrent.CompletableFuture.complete(CompletableFuture.java:2206)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.http.StandardHttpClient.lambda$completeOrCancel$10(StandardHttpClient.java:141)
+	at java.base/java.util.concurrent.CompletableFuture.uniWhenComplete(CompletableFuture.java:884)
+	at java.base/java.util.concurrent.CompletableFuture$UniWhenComplete.tryFire(CompletableFuture.java:862)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:531)
+	at java.base/java.util.concurrent.CompletableFuture.complete(CompletableFuture.java:2206)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.http.ByteArrayBodyHandler.onBodyDone(ByteArrayBodyHandler.java:51)
+	at java.base/java.util.concurrent.CompletableFuture.uniWhenComplete(CompletableFuture.java:884)
+	at java.base/java.util.concurrent.CompletableFuture$UniWhenComplete.tryFire(CompletableFuture.java:862)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:531)
+	at java.base/java.util.concurrent.CompletableFuture.complete(CompletableFuture.java:2206)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.okhttp.OkHttpClientImpl$OkHttpAsyncBody.doConsume(OkHttpClientImpl.java:134)
+Caused: io.fabric8.kubernetes.client.KubernetesClientException: Failure executing: POST at: https://kubernetes.default/api/v1/namespaces/jenkins/pods. Message: Pod "router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf" is invalid: spec.containers[2].resources.requests: Invalid value: "256Mi": must be less than or equal to memory limit of 150Mi. Received status: Status(apiVersion=v1, code=422, details=StatusDetails(causes=[StatusCause(field=spec.containers[2].resources.requests, message=Invalid value: "256Mi": must be less than or equal to memory limit of 150Mi, reason=FieldValueInvalid, additionalProperties={})], group=null, kind=Pod, name=router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf, retryAfterSeconds=null, uid=null, additionalProperties={}), kind=Status, message=Pod "router-feat-2fcv-parity-8-k9n16-6qbcm-5q4qf" is invalid: spec.containers[2].resources.requests: Invalid value: "256Mi": must be less than or equal to memory limit of 150Mi, metadata=ListMeta(_continue=null, remainingItemCount=null, resourceVersion=null, selfLink=null, additionalProperties={}), reason=Invalid, status=Failure, additionalProperties={}).
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.KubernetesClientException.copyAsCause(KubernetesClientException.java:205)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.OperationSupport.waitForResult(OperationSupport.java:507)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.OperationSupport.handleResponse(OperationSupport.java:524)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.OperationSupport.handleCreate(OperationSupport.java:340)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.BaseOperation.handleCreate(BaseOperation.java:754)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.BaseOperation.handleCreate(BaseOperation.java:98)
+	at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.CreateOnlyResourceOperation.create(CreateOnlyResourceOperation.java:42)
+	at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.KubernetesLauncher.launch(KubernetesLauncher.java:171)
+	at hudson.slaves.SlaveComputer.lambda$_connect$0(SlaveComputer.java:298)
+	at jenkins.util.ContextResettingExecutorService.lambda$wrap$1(ContextResettingExecutorService.java:41)
+	at jenkins.security.ImpersonatingExecutorService.lambda$wrap$1(ImpersonatingExecutorService.java:75)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+[Pipeline] // node
+[Pipeline] }
+[Pipeline] // podTemplate
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] archiveArtifacts
+Error when executing always post condition:
+Also:   org.jenkinsci.plugins.workflow.actions.ErrorAction$ErrorId: 061e0969-9ac4-4848-9b2d-0aa1acbd7dd0
+org.jenkinsci.plugins.workflow.steps.MissingContextVariableException: Required context class hudson.FilePath is missing
+Perhaps you forgot to surround the step with a step that provides this, such as: node
+	at PluginClassLoader for workflow-basic-steps//org.jenkinsci.plugins.workflow.steps.CoreStep$Execution.run(CoreStep.java:92)
+	at PluginClassLoader for workflow-basic-steps//org.jenkinsci.plugins.workflow.steps.CoreStep$Execution.run(CoreStep.java:72)
+	at PluginClassLoader for workflow-step-api//org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution.lambda$start$0(SynchronousNonBlockingStepExecution.java:49)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] End of Pipeline
+Queue task was cancelled
+org.jenkinsci.plugins.workflow.actions.ErrorAction$ErrorId: c1e2aa5c-8c39-4a5c-bd31-2c069cee2088
+Finished: ABORTED

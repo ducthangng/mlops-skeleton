@@ -1,0 +1,577 @@
+Started by user Jenkins Admin
+ > git rev-parse --resolve-git-dir /var/jenkins_home/caches/git-07737ad7042497b50198942d36711452/.git # timeout=10
+Setting origin to git://host.docker.internal/ml-ops-skeleton
+ > git config remote.origin.url git://host.docker.internal/ml-ops-skeleton # timeout=10
+Fetching origin...
+Fetching upstream changes from origin
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git config --get remote.origin.url # timeout=10
+ > git fetch --no-tags --force --progress -- origin +refs/heads/*:refs/remotes/origin/* # timeout=10
+Seen branch in repository origin/feat/cv-parity
+Seen branch in repository origin/main
+Seen 2 remote branches
+Obtained Jenkinsfile from 7ca36a92bfc6696c76f6ff5458b010514fb56a35
+[Pipeline] Start of Pipeline
+[Pipeline] podTemplate
+[Pipeline] {
+[Pipeline] node
+[PodInfo] jenkins/router-feat-2fcv-parity-9-1g77w-694j3-894th
+	Container [jnlp] waiting [ContainerCreating] No message
+	Container [kaniko] waiting [ContainerCreating] No message
+	Container [python] waiting [ContainerCreating] No message
+	Container [redis] waiting [ContainerCreating] No message
+	Pod [Pending][PodSandboxNotReady] no pod sandbox exists
+	Pod [Pending][ContainersNotReady] containers with unready status: [python redis kaniko jnlp]
+Created Pod: kubernetes jenkins/router-feat-2fcv-parity-9-1g77w-694j3-894th
+[PodInfo] jenkins/router-feat-2fcv-parity-9-1g77w-694j3-894th
+	Container [jnlp] waiting [ContainerCreating] No message
+	Container [kaniko] waiting [ContainerCreating] No message
+	Container [python] waiting [ContainerCreating] No message
+	Container [redis] waiting [ContainerCreating] No message
+	Pod [Pending][ContainersNotReady] containers with unready status: [python redis kaniko jnlp]
+Agent router-feat-2fcv-parity-9-1g77w-694j3-894th is provisioned from template router_feat_2Fcv-parity_9-1g77w-694j3
+---
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  annotations:
+    kubernetes.jenkins.io/last-refresh: "1794988700145"
+    buildUrl: "http://jenkins.jenkins.svc.cluster.local:8080/job/router/job/feat%252Fcv-parity/9/"
+    runUrl: "job/router/job/feat%252Fcv-parity/9/"
+  labels:
+    jenkins/jenkins-jenkins-agent: "true"
+    jenkins/label-digest: "4163a7d9d21e30a2bd1978cc59802e141187fe9a"
+    jenkins/label: "router_feat_2Fcv-parity_9-1g77w"
+    kubernetes.jenkins.io/controller: "http___jenkins_jenkins_svc_cluster_local_8080x"
+  name: "router-feat-2fcv-parity-9-1g77w-694j3-894th"
+  namespace: "jenkins"
+spec:
+  containers:
+  - command:
+    - "sh"
+    - "-c"
+    - "trap 'exit 0' TERM; sleep infinity & wait"
+    image: "python:3.12-slim"
+    name: "python"
+    resources:
+      limits:
+        memory: "1536Mi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - args:
+    - "--save"
+    - ""
+    - "--maxmemory"
+    - "64mb"
+    image: "redis:8.10.3-alpine"
+    name: "redis"
+    resources:
+      limits:
+        memory: "128Mi"
+      requests:
+        cpu: "50m"
+        memory: "32Mi"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - command:
+    - "/busybox/cat"
+    image: "martizih/kaniko:v1.26.6-debug"
+    name: "kaniko"
+    resources:
+      limits:
+        memory: "150Mi"
+      requests:
+        cpu: "500m"
+        memory: "128Mi"
+    tty: true
+    volumeMounts:
+    - mountPath: "/kaniko/.docker"
+      name: "docker-config"
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - env:
+    - name: "JENKINS_SECRET"
+      value: "********"
+    - name: "JENKINS_TUNNEL"
+      value: "jenkins-agent.jenkins.svc.cluster.local:50000"
+    - name: "JENKINS_AGENT_NAME"
+      value: "router-feat-2fcv-parity-9-1g77w-694j3-894th"
+    - name: "REMOTING_OPTS"
+      value: "-noReconnectAfter 1d"
+    - name: "JENKINS_NAME"
+      value: "router-feat-2fcv-parity-9-1g77w-694j3-894th"
+    - name: "JENKINS_AGENT_WORKDIR"
+      value: "/home/jenkins/agent"
+    - name: "JENKINS_URL"
+      value: "http://jenkins.jenkins.svc.cluster.local:8080/"
+    image: "jenkins/inbound-agent:3391.va_37fa_a_305d6d-1-jdk25"
+    name: "jnlp"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  nodeSelector:
+    kubernetes.io/os: "linux"
+  restartPolicy: "Never"
+  volumes:
+  - name: "docker-config"
+    secret:
+      items:
+      - key: ".dockerconfigjson"
+        path: "config.json"
+      optional: true
+      secretName: "ghcr-creds"
+  - emptyDir:
+      medium: ""
+    name: "workspace-volume"
+
+Running on router-feat-2fcv-parity-9-1g77w-694j3-894th in /home/jenkins/agent/workspace/router_feat_cv-parity
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+No credentials specified
+Cloning the remote Git repository
+Cloning with configured refspecs honoured and without tags
+Avoid second fetch
+Checking out Revision 7ca36a92bfc6696c76f6ff5458b010514fb56a35 (feat/cv-parity)
+Commit message: "fix(ci): Kaniko memory request 128Mi so a lower KANIKO_MEMORY limit is valid"
+Cloning repository git://host.docker.internal/ml-ops-skeleton
+ > git init /home/jenkins/agent/workspace/router_feat_cv-parity # timeout=10
+Fetching upstream changes from git://host.docker.internal/ml-ops-skeleton
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git fetch --no-tags --force --progress -- git://host.docker.internal/ml-ops-skeleton +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url git://host.docker.internal/ml-ops-skeleton # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 7ca36a92bfc6696c76f6ff5458b010514fb56a35 # timeout=10
+ > git rev-list --no-walk 093ca1e2bd56b4837484dcc3ac453c568d1f8a49 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] container
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] timeout
+Timeout set to expire in 30 min
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Setup)
+[Pipeline] sh
++ pip install --quiet uv==0.11.28
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 26.3
+[notice] To update, run: pip install --upgrade pip
++ uv sync --frozen
+Using CPython 3.12.16 interpreter at: /usr/local/bin/python3.12
+Creating virtual environment at: .venv
+Downloading pygments (1.2MiB)
+Downloading lupa (1.7MiB)
+Downloading ruff (9.7MiB)
+Downloading pydantic-core (2.0MiB)
+Downloading numpy (15.0MiB)
+ Downloaded pygments
+ Downloaded lupa
+ Downloaded pydantic-core
+ Downloaded ruff
+ Downloaded numpy
+Prepared 37 packages in 1.26s
+Installed 37 packages in 225ms
+ + annotated-doc==0.0.5
+ + annotated-types==0.8.0
+ + anyio==4.15.1
+ + certifi==2026.7.22
+ + click==8.5.0
+ + coverage==7.17.3
+ + fakeredis==2.40.0
+ + fastapi==0.146.0
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + idna==3.20
+ + iniconfig==2.3.1
+ + lupa==2.8
+ + markdown-it-py==4.2.0
+ + mdurl==0.1.2
+ + numpy==2.5.4
+ + opentelemetry-api==1.45.1
+ + packaging==26.3
+ + pluggy==1.7.0
+ + prometheus-client==0.26.0
+ + pydantic==2.14.1
+ + pydantic-core==2.50.1
+ + pygments==2.21.0
+ + pytest==9.2.0
+ + pytest-cov==7.1.0
+ + pyyaml==6.0.3
+ + redis==8.1.0
+ + rich==15.0.0
+ + ruff==0.17.5
+ + shellingham==1.5.4
+ + sortedcontainers==2.4.0
+ + starlette==1.9.0
+ + typer==0.27.3
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.4
+ + uvicorn==0.54.0
++ mkdir -p reports
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Checks)
+[Pipeline] parallel
+[Pipeline] { (Branch: Lint)
+[Pipeline] { (Branch: Unit + API tests)
+[Pipeline] stage
+[Pipeline] { (Lint)
+[Pipeline] stage
+[Pipeline] { (Unit + API tests)
+[Pipeline] sh
+[Pipeline] sh
++ uv run ruff check . --output-format=concise
+All checks passed!
++ uv run pytest -q tests/unit tests/api --cov --cov-report= --junitxml=reports/junit-unit.xml
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+........................................................................ [ 97%]
+..                                                                       [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /home/jenkins/agent/workspace/router_feat_cv-parity/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+74 passed, 1 warning in 1.38s
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // parallel
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Integration tests)
+[Pipeline] sh
++ seq 1 20
++ python -c import socket; socket.create_connection(('localhost', 6379), 1)
++ break
++ REDIS_URL=redis://localhost:6379/0 uv run pytest -q -m integration tests/integration --cov --cov-append --cov-report= --junitxml=reports/junit-integration.xml
+......                                                                   [100%]
+6 passed in 0.63s
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Coverage gate (>= 80%))
+[Pipeline] sh
++ uv run coverage report --fail-under=80
+Name                              Stmts   Miss  Cover
+-----------------------------------------------------
+app/__init__.py                       0      0   100%
+app/cache.py                        134      8    94%
+app/classifier.py                    40      2    95%
+app/config.py                        25      0   100%
+app/embedder.py                      38      2    95%
+app/main.py                         159      2    99%
+app/metrics.py                       10      0   100%
+app/ratelimit.py                     39      1    97%
+app/upstream.py                      55      2    96%
+mock_llm/__init__.py                  0      0   100%
+mock_llm/main.py                     34      0   100%
+tools/__init__.py                     0      0   100%
+tools/logtriage/__init__.py           0      0   100%
+tools/logtriage/__main__.py           2      2     0%
+tools/logtriage/classify.py          38      0   100%
+tools/logtriage/cli.py               57      5    91%
+tools/logtriage/jenkins.py           26      0   100%
+tools/logtriage/qualify_diff.py      33      5    85%
+tools/logtriage/stats.py             20      0   100%
+-----------------------------------------------------
+TOTAL                               710     29    96%
++ uv run coverage xml -o reports/coverage.xml
+Wrote XML report to reports/coverage.xml
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Routing eval gate)
+[Pipeline] sh
++ uv run python -m evals.run --split test --gate evals/baseline.json --out reports/eval.json
+test  n= 48 acc=93.8% errors={'math->default': 2, 'chitchat->default': 1}
+gate: test acc=93.8% floor=91.8% (baseline 93.8% - 2%) -> PASS
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build image)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] container
+[Pipeline] {
+[Pipeline] sh
+[36mINFO[0m[0000] Retrieving image manifest python:3.12-slim   
+[36mINFO[0m[0000] Retrieving image python:3.12-slim from registry index.docker.io 
+[36mINFO[0m[0000] credential providers by priority: [env, google, ecr, acr, gitlab] 
+[36mINFO[0m[0001] Resolved base name of builder to python:3.12-slim 
+[36mINFO[0m[0001] Retrieving image manifest python:3.12-slim   
+[36mINFO[0m[0001] Returning cached image manifest              
+[36mINFO[0m[0001] Using dockerignore file: /home/jenkins/agent/workspace/router_feat_cv-parity/.dockerignore 
+[36mINFO[0m[0001] Retrieving image manifest python:3.12-slim   
+[36mINFO[0m[0001] Returning cached image manifest              
+[36mINFO[0m[0001] Retrieving image manifest python:3.12-slim   
+[36mINFO[0m[0001] Returning cached image manifest              
+[36mINFO[0m[0001] Built cross stage deps: map[0:[/opt/venv]]   
+[36mINFO[0m[0001] Retrieving image manifest ghcr.io/astral-sh/uv:0.5.11 
+[36mINFO[0m[0001] Retrieving image ghcr.io/astral-sh/uv:0.5.11 from registry ghcr.io 
+[36mINFO[0m[0001] credential providers by priority: [env, google, ecr, acr, gitlab] 
+[36mINFO[0m[0001] Storing source image from stage ghcr.io/astral-sh/uv:0.5.11 at path /kaniko/stages/ghcr.io/astral-sh/uv:0.5.11 
+[36mINFO[0m[0003] Retrieving image manifest python:3.12-slim   
+[36mINFO[0m[0003] Returning cached image manifest              
+[36mINFO[0m[0003] Building stage 'python:3.12-slim' [idx: '0', base-idx: '-1'] 
+[36mINFO[0m[0003] Unpacking rootfs as cmd COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /bin/uv requires it. 
+[36mINFO[0m[0007] COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /bin/uv 
+[36mINFO[0m[0007] Taking snapshot of files...                  
+[36mINFO[0m[0007] ENV UV_PROJECT_ENVIRONMENT=/opt/venv UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1 
+[36mINFO[0m[0007] WORKDIR /build                               
+[36mINFO[0m[0007] Cmd: workdir                                 
+[36mINFO[0m[0007] Changed working directory to /build          
+[36mINFO[0m[0007] Creating directory /build with uid 0 and gid 0 
+[36mINFO[0m[0007] Taking snapshot of files...                  
+[36mINFO[0m[0007] COPY pyproject.toml uv.lock ./               
+[36mINFO[0m[0007] Taking snapshot of files...                  
+[36mINFO[0m[0008] RUN uv sync --frozen --no-dev --no-install-project  && ! /opt/venv/bin/python -c "import torch" 2>/dev/null   # guard: fail the build if torch sneaks in 
+[36mINFO[0m[0008] Initializing snapshotter ...                 
+[36mINFO[0m[0008] Taking snapshot of full filesystem...        
+[36mINFO[0m[0008] Cmd: /bin/sh                                 
+[36mINFO[0m[0008] Args: [-c uv sync --frozen --no-dev --no-install-project  && ! /opt/venv/bin/python -c "import torch" 2>/dev/null   # guard: fail the build if torch sneaks in] 
+[36mINFO[0m[0008] Running: [/bin/sh -c uv sync --frozen --no-dev --no-install-project  && ! /opt/venv/bin/python -c "import torch" 2>/dev/null   # guard: fail the build if torch sneaks in] 
+Using CPython 3.12.16 interpreter at: /usr/local/bin/python3
+Creating virtual environment at: /opt/venv
+Prepared 27 packages in 1.52s
+Installed 27 packages in 414ms
+[PodInfo] jenkins/router-feat-2fcv-parity-9-1g77w-694j3-894th
+	Container [kaniko] terminated [OOMKilled] No message
+	Pod [Running][ContainersNotReady] containers with unready status: [kaniko]
+jenkins/router-feat-2fcv-parity-9-1g77w-694j3-894th Container kaniko was terminated.
+
+- jnlp -- running
+-----Logs-------------
+INFO: Setting up agent: router-feat-2fcv-parity-9-1g77w-694j3-894th
+Nov 18, 2026 7:58:21 AM hudson.remoting.Engine startEngine
+INFO: Using Remoting version: 3391.va_37fa_a_305d6d
+Nov 18, 2026 7:58:21 AM org.jenkinsci.remoting.engine.WorkDirManager initializeWorkDir
+INFO: Using /home/jenkins/agent/remoting as a remoting work directory
+Nov 18, 2026 7:58:21 AM hudson.remoting.Launcher$CuiListener status
+INFO: Locating server among [http://jenkins.jenkins.svc.cluster.local:8080/]
+Nov 18, 2026 7:58:21 AM org.jenkinsci.remoting.engine.JnlpAgentEndpointResolver resolve
+INFO: Remoting server accepts the following protocols: [JNLP4-connect, Ping]
+Nov 18, 2026 7:58:21 AM org.jenkinsci.remoting.engine.JnlpAgentEndpointResolver resolve
+INFO: Remoting TCP connection tunneling is enabled. Skipping the TCP Agent Listener Port availability check
+Nov 18, 2026 7:58:21 AM hudson.remoting.Launcher$CuiListener status
+INFO: Agent discovery successful
+  Agent address: jenkins-agent.jenkins.svc.cluster.local
+  Agent port:    50000
+  Identity:      34:f8:7a:c4:30:08:43:15:e7:f5:bc:ed:cf:9f:db:3a
+Nov 18, 2026 7:58:21 AM hudson.remoting.Launcher$CuiListener status
+INFO: Handshaking
+Nov 18, 2026 7:58:21 AM hudson.remoting.Launcher$CuiListener status
+INFO: Server reports protocol JNLP4-connect-proxy not supported, skipping
+Nov 18, 2026 7:58:21 AM hudson.remoting.Launcher$CuiListener status
+INFO: Trying protocol: JNLP4-connect
+Nov 18, 2026 7:58:21 AM hudson.remoting.Launcher$CuiListener status
+INFO: Connecting to jenkins-agent.jenkins.svc.cluster.local:50000
+Nov 18, 2026 7:58:21 AM org.jenkinsci.remoting.protocol.impl.BIONetworkLayer$Reader run
+INFO: Waiting for ProtocolStack to start.
+Nov 18, 2026 7:58:21 AM hudson.remoting.Launcher$CuiListener status
+INFO: Remote identity confirmed: 34:f8:7a:c4:30:08:43:15:e7:f5:bc:ed:cf:9f:db:3a
+Nov 18, 2026 7:58:21 AM hudson.remoting.Launcher$CuiListener status
+INFO: Connected
+
+
+- kaniko -- terminated (137)
+-----Logs-------------
+
+
+- python -- running
+-----Logs-------------
+
+
+- redis -- running
+-----Logs-------------
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> 	{ ts-chunk-size-bytes    :         4096 }
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> 	{ ts-encoding            :   compressed }
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> 	{ ts-ignore-max-time-diff:            0 }
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> 	{ ts-ignore-max-val-diff :     0.000000 }
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> 	{ ts-topology-events     :         true }
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> ]
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> Detected redis oss (cluster-enabled=no)
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> Subscribe to ASM events
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> Subscribe to topology changes events
+1:M 18 Nov 2026 07:58:21.102 * <timeseries> Enabled diskless replication
+1:M 18 Nov 2026 07:58:21.102 * Module 'timeseries' loaded from /usr/local/lib/redis/modules//redistimeseries.so
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Created new data type 'ReJSON-RL'
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> version: 81000 git sha: unknown branch: unknown
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Exported RedisJSON_V1 API
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Exported RedisJSON_V2 API
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Exported RedisJSON_V3 API
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Exported RedisJSON_V4 API
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Exported RedisJSON_V5 API
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Exported RedisJSON_V6 API
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Exported RedisJSON_V7 API
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Exported RedisJSON_V8 API
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Enabled diskless replication
+1:M 18 Nov 2026 07:58:21.103 * <ReJSON> Initialized shared string cache, thread safe: true.
+1:M 18 Nov 2026 07:58:21.103 * Module 'ReJSON' loaded from /usr/local/lib/redis/modules//rejson.so
+1:M 18 Nov 2026 07:58:21.103 * <search> Acquired RedisJSON_V8 API
+1:M 18 Nov 2026 07:58:21.131 * Server initialized
+1:M 18 Nov 2026 07:58:21.131 * Ready to accept connections tcp
+1:M 18 Nov 2026 07:58:21.131 # WARNING: Redis does not require authentication and is not protected by network restrictions. Redis will accept connections from any IP address on any network interface.
+1:M 18 Nov 2026 07:58:35.499 * <search> Creating vector index of type FLAT. Required memory for a block of 1024 vectors: 1065512B
+1:M 18 Nov 2026 07:58:35.499 * <search> Successfully created index semidx:d256
+
+[PodInfo] jenkins/router-feat-2fcv-parity-9-1g77w-694j3-894th
+	Container [kaniko] terminated [OOMKilled] No message
+	Pod [Running][ContainersNotReady] containers with unready status: [kaniko]
+Agent router-feat-2fcv-parity-9-1g77w-694j3-894th was deleted; cancelling node body
+router-feat-2fcv-parity-9-1g77w-694j3-894th seems to be removed or offline (hudson.remoting.ChannelClosedException: Channel "hudson.remoting.Channel@409130fb:JNLP4-connect connection from 10.244.2.59/10.244.2.59:47278": Remote call on JNLP4-connect connection from 10.244.2.59/10.244.2.59:47278 failed. The channel is closing down or has closed down); will wait for 5 min 0 sec for it to come back online
+Could not connect to router-feat-2fcv-parity-9-1g77w-694j3-894th to send interrupt signal to process
+[Pipeline] }
+[Pipeline] // container
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Bump GitOps (dev))
+Stage "Bump GitOps (dev)" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] archiveArtifacts
+Error when executing always post condition:
+Also:   hudson.model.Computer$TerminationRequest: Termination requested at Wed Nov 18 07:58:48 UTC 2026 by Thread[#2803,-1874307595-pool-22-thread-18,5,main] [id=2803]
+		at hudson.model.Computer.recordTermination(Computer.java:243)
+		at hudson.slaves.AbstractCloudSlave.terminate(AbstractCloudSlave.java:85)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper.logLastLinesThenTerminateNode(Reaper.java:557)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper.logAndCleanUp(Reaper.java:539)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$TerminateAgentOnContainerTerminated.onEvent(Reaper.java:463)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.lambda$eventReceived$0(Reaper.java:328)
+		at jenkins.util.Listeners.lambda$notify$0(Listeners.java:59)
+		at jenkins.util.Listeners.notify(Listeners.java:67)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.eventReceived(Reaper.java:324)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.eventReceived(Reaper.java:283)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.utils.internal.WatcherToggle.eventReceived(WatcherToggle.java:48)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.AbstractWatchManager$SerialWatcher.lambda$eventReceived$0(AbstractWatchManager.java:70)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.utils.internal.SerialExecutor.lambda$execute$0(SerialExecutor.java:67)
+Also:   hudson.model.Computer$TerminationRequest: Termination requested at Wed Nov 18 07:58:49 UTC 2026 by Thread[#2803,-1874307595-pool-22-thread-18,5,main] [id=2803]
+		at hudson.model.Computer.recordTermination(Computer.java:243)
+		at jenkins.model.Nodes.lambda$removeNode$8(Nodes.java:324)
+		at hudson.model.Queue._runWithLock(Queue.java:1462)
+		at hudson.model.Queue.runWithLock(Queue.java:1289)
+		at jenkins.model.Nodes.removeNode(Nodes.java:321)
+		at jenkins.model.Jenkins.removeNode(Jenkins.java:2219)
+		at hudson.slaves.AbstractCloudSlave.terminate(AbstractCloudSlave.java:91)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper.logLastLinesThenTerminateNode(Reaper.java:557)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper.logAndCleanUp(Reaper.java:539)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$TerminateAgentOnContainerTerminated.onEvent(Reaper.java:463)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.lambda$eventReceived$0(Reaper.java:328)
+		at jenkins.util.Listeners.lambda$notify$0(Listeners.java:59)
+		at jenkins.util.Listeners.notify(Listeners.java:67)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.eventReceived(Reaper.java:324)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.eventReceived(Reaper.java:283)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.utils.internal.WatcherToggle.eventReceived(WatcherToggle.java:48)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.AbstractWatchManager$SerialWatcher.lambda$eventReceived$0(AbstractWatchManager.java:70)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.utils.internal.SerialExecutor.lambda$execute$0(SerialExecutor.java:67)
+Also:   hudson.model.Computer$TerminationRequest: Termination requested at Wed Nov 18 07:58:49 UTC 2026 by Thread[#2803,-1874307595-pool-22-thread-18,5,main] [id=2803]
+		at hudson.model.Computer.recordTermination(Computer.java:243)
+		at hudson.model.Computer.disconnect(Computer.java:503)
+		at hudson.slaves.SlaveComputer.disconnect(SlaveComputer.java:820)
+		at jenkins.model.Nodes.lambda$removeNode$8(Nodes.java:325)
+		at hudson.model.Queue._runWithLock(Queue.java:1462)
+		at hudson.model.Queue.runWithLock(Queue.java:1289)
+		at jenkins.model.Nodes.removeNode(Nodes.java:321)
+		at jenkins.model.Jenkins.removeNode(Jenkins.java:2219)
+		at hudson.slaves.AbstractCloudSlave.terminate(AbstractCloudSlave.java:91)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper.logLastLinesThenTerminateNode(Reaper.java:557)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper.logAndCleanUp(Reaper.java:539)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$TerminateAgentOnContainerTerminated.onEvent(Reaper.java:463)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.lambda$eventReceived$0(Reaper.java:328)
+		at jenkins.util.Listeners.lambda$notify$0(Listeners.java:59)
+		at jenkins.util.Listeners.notify(Listeners.java:67)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.eventReceived(Reaper.java:324)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.eventReceived(Reaper.java:283)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.utils.internal.WatcherToggle.eventReceived(WatcherToggle.java:48)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.AbstractWatchManager$SerialWatcher.lambda$eventReceived$0(AbstractWatchManager.java:70)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.utils.internal.SerialExecutor.lambda$execute$0(SerialExecutor.java:67)
+Also:   hudson.model.Computer$TerminationRequest: Termination requested at Wed Nov 18 07:58:49 UTC 2026 by Thread[#2803,-1874307595-pool-22-thread-18,5,main] [id=2803]
+		at hudson.model.Computer.recordTermination(Computer.java:243)
+		at hudson.model.Computer.disconnect(Computer.java:503)
+		at hudson.slaves.SlaveComputer.disconnect(SlaveComputer.java:820)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper.disconnectComputer(Reaper.java:571)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper.logAndCleanUp(Reaper.java:541)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$TerminateAgentOnContainerTerminated.onEvent(Reaper.java:463)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.lambda$eventReceived$0(Reaper.java:328)
+		at jenkins.util.Listeners.lambda$notify$0(Listeners.java:59)
+		at jenkins.util.Listeners.notify(Listeners.java:67)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.eventReceived(Reaper.java:324)
+		at PluginClassLoader for kubernetes//org.csanchez.jenkins.plugins.kubernetes.pod.retention.Reaper$CloudPodWatcher.eventReceived(Reaper.java:283)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.utils.internal.WatcherToggle.eventReceived(WatcherToggle.java:48)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.dsl.internal.AbstractWatchManager$SerialWatcher.lambda$eventReceived$0(AbstractWatchManager.java:70)
+		at PluginClassLoader for kubernetes-client-api//io.fabric8.kubernetes.client.utils.internal.SerialExecutor.lambda$execute$0(SerialExecutor.java:67)
+Also:   org.jenkinsci.plugins.workflow.actions.ErrorAction$ErrorId: a113c0e7-39d9-4011-af83-b93e423ed209
+org.jenkinsci.plugins.workflow.support.steps.AgentOfflineException: Unable to create live FilePath for router-feat-2fcv-parity-9-1g77w-694j3-894th; router-feat-2fcv-parity-9-1g77w-694j3-894th was marked offline: Pod failed because container terminated (Reason: ContainerError, Container: [kaniko])
+	at PluginClassLoader for workflow-durable-task-step//org.jenkinsci.plugins.workflow.support.steps.ExecutorStepDynamicContext$FilePathTranslator.get(ExecutorStepDynamicContext.java:188)
+	at PluginClassLoader for workflow-durable-task-step//org.jenkinsci.plugins.workflow.support.steps.ExecutorStepDynamicContext$FilePathTranslator.get(ExecutorStepDynamicContext.java:160)
+	at PluginClassLoader for workflow-durable-task-step//org.jenkinsci.plugins.workflow.support.steps.ExecutorStepDynamicContext$Translator.get(ExecutorStepDynamicContext.java:153)
+	at PluginClassLoader for workflow-durable-task-step//org.jenkinsci.plugins.workflow.support.steps.ExecutorStepDynamicContext$FilePathTranslator.get(ExecutorStepDynamicContext.java:170)
+	at PluginClassLoader for workflow-durable-task-step//org.jenkinsci.plugins.workflow.support.steps.ExecutorStepDynamicContext$FilePathTranslator.get(ExecutorStepDynamicContext.java:160)
+	at PluginClassLoader for workflow-step-api//org.jenkinsci.plugins.workflow.steps.DynamicContext$Typed.get(DynamicContext.java:95)
+	at PluginClassLoader for workflow-cps//org.jenkinsci.plugins.workflow.cps.ContextVariableSet.get(ContextVariableSet.java:168)
+	at PluginClassLoader for workflow-cps//org.jenkinsci.plugins.workflow.cps.CpsThread.getContextVariable(CpsThread.java:141)
+	at PluginClassLoader for workflow-cps//org.jenkinsci.plugins.workflow.cps.CpsStepContext.doGet(CpsStepContext.java:315)
+	at PluginClassLoader for workflow-support//org.jenkinsci.plugins.workflow.support.DefaultStepContext.get(DefaultStepContext.java:97)
+	at PluginClassLoader for workflow-basic-steps//org.jenkinsci.plugins.workflow.steps.CoreStep$Execution.run(CoreStep.java:85)
+	at PluginClassLoader for workflow-basic-steps//org.jenkinsci.plugins.workflow.steps.CoreStep$Execution.run(CoreStep.java:72)
+	at PluginClassLoader for workflow-step-api//org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution.lambda$start$0(SynchronousNonBlockingStepExecution.java:49)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // timeout
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // container
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] }
+[Pipeline] // podTemplate
+[Pipeline] End of Pipeline
+Agent was removed
+org.jenkinsci.plugins.workflow.actions.ErrorAction$ErrorId: b7c6160c-a90f-4284-8878-a2ac88cdf1e6
+Finished: ABORTED

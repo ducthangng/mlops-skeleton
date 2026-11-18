@@ -17,33 +17,6 @@ JENKINS_DIR=$GITOPS_DIR/jenkins
 REQUIRED_PLUGINS=(configuration-as-code workflow-multibranch workflow-aggregator git kubernetes credentials
                   credentials-binding pipeline-model-definition)
 
-# Runs curl INSIDE the controller pod: the admin password never leaves the pod (it is read from
-# the file the chart already mounts). Request body comes from stdin, so no secret is in argv.
-#   jenkins_api METHOD PATH [CONTENT_TYPE] < body      -> prints "HTTP_CODE" then response body
-read -r -d '' IN_POD <<'SH' || true
-set -euo pipefail
-method=$1 path=$2 ctype=${3:-application/xml}
-netrc=$(mktemp) jar=$(mktemp) out=$(mktemp)
-trap 'rm -f "$netrc" "$jar" "$out"' EXIT
-printf 'machine localhost login %s password %s\n' \
-  "$(cat /run/secrets/additional/chart-admin-username)" "$(cat /run/secrets/additional/chart-admin-password)" > "$netrc"
-base=http://localhost:8080
-if [ "$method" = GET ]; then
-  code=$(curl -s -o "$out" -w '%{http_code}' --netrc-file "$netrc" "$base$path")
-else
-  crumb=$(curl -sf --netrc-file "$netrc" -c "$jar" "$base/crumbIssuer/api/json" \
-          | sed -E 's/.*"crumb":"([^"]+)".*"crumbRequestField":"([^"]+)".*/\2:\1/')
-  code=$(curl -s -o "$out" -w '%{http_code}' --netrc-file "$netrc" -b "$jar" -H "$crumb" \
-          -X "$method" -H "Content-Type: $ctype" --data-binary @- "$base$path")
-fi
-echo "$code"; cat "$out"
-SH
-
-jenkins_api() { k -n jenkins exec -i jenkins-0 -c jenkins -- bash -c "$IN_POD" _ "$@"; }
-# Read the status line AND drain the rest: `head -n1` would close the pipe early, the producer gets
-# SIGPIPE (exit 141) and, under pipefail + set -e, the script dies without a message.
-http_code() { local first; IFS= read -r first; cat >/dev/null; printf '%s' "$first"; }
-
 # Replacement strings are quoted on purpose: in bash >= 5.2 an unquoted `&` in ${v//pat/repl}
 # expands to the matched text (patsub_replacement), which silently corrupted the XML.
 xml_escape() {

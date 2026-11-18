@@ -85,3 +85,14 @@ gw-test:
 
 gw-build:
 	cd web && npm run build
+
+# ---------- drills (drills/NN-*.sh): each prints what breaks, what to observe, how to restore ----------
+.PHONY: drills
+drills:        ## list drills
+	@scripts/drill.sh list
+
+drill-%-fix:   # must stay above drill-%: make 3.81 (macOS) takes the first matching pattern
+	@scripts/drill.sh $* fix
+
+drill-%:
+	@scripts/drill.sh $* break

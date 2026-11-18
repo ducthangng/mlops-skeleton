@@ -16,3 +16,4 @@ wheels/
 reports/
 coverage.xml
 .execution.md.swp
+.drills/

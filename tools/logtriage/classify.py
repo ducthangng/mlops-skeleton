@@ -90,7 +90,11 @@ def classify(log: str) -> Triage:
         if cat in first_hit:
             others = {c: e for c, e in first_hit.items() if c != cat}
             return Triage(cat, first_hit[cat], others)
-    # unknown: point at the last line that looks like an error, else the last non-empty line
+    # unknown: the FIRST explicit "ERROR:" line is usually the root cause (later ones are consequences,
+    # e.g. post actions failing because the pod never started); else the last error-like line.
+    for no, line in enumerate(lines, 1):
+        if line.startswith("ERROR:") and not WRAPPER.search(line):
+            return Triage("unknown", Evidence(no, line.strip()[:300], "^ERROR:"))
     for no in range(len(lines), 0, -1):
         if FAILURE_HINT.search(lines[no - 1]) and not WRAPPER.search(lines[no - 1]):
             return Triage("unknown", Evidence(no, lines[no - 1].strip()[:300], FAILURE_HINT.pattern))

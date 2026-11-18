@@ -1,0 +1,340 @@
+Branch indexing
+ > git rev-parse --resolve-git-dir /var/jenkins_home/caches/git-07737ad7042497b50198942d36711452/.git # timeout=10
+Setting origin to git://host.docker.internal/ml-ops-skeleton
+ > git config remote.origin.url git://host.docker.internal/ml-ops-skeleton # timeout=10
+Fetching origin...
+Fetching upstream changes from origin
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git config --get remote.origin.url # timeout=10
+ > git fetch --no-tags --force --progress -- origin +refs/heads/*:refs/remotes/origin/* # timeout=10
+Seen branch in repository origin/drill/01-failing-test
+Seen branch in repository origin/drill/02-lint-error
+Seen branch in repository origin/feat/cv-parity
+Seen branch in repository origin/main
+Seen 4 remote branches
+Obtained Jenkinsfile from 92132515eca0d6374eebee9fc6abf3c55ff97862
+[Pipeline] Start of Pipeline
+[Pipeline] podTemplate
+[Pipeline] {
+[Pipeline] node
+Created Pod: kubernetes jenkins/router-drill-2f02-lint-error-1-4r6c9-0zds4-jpb57
+[PodInfo] jenkins/router-drill-2f02-lint-error-1-4r6c9-0zds4-jpb57
+	Container [jnlp] waiting [ContainerCreating] No message
+	Container [kaniko] waiting [ContainerCreating] No message
+	Container [python] waiting [ContainerCreating] No message
+	Container [redis] waiting [ContainerCreating] No message
+	Pod [Pending][PodSandboxNotReady] no pod sandbox exists
+	Pod [Pending][ContainersNotReady] containers with unready status: [python redis kaniko jnlp]
+[PodInfo] jenkins/router-drill-2f02-lint-error-1-4r6c9-0zds4-jpb57
+	Container [jnlp] waiting [ContainerCreating] No message
+	Container [kaniko] waiting [ContainerCreating] No message
+	Container [python] waiting [ContainerCreating] No message
+	Container [redis] waiting [ContainerCreating] No message
+	Pod [Pending][ContainersNotReady] containers with unready status: [python redis kaniko jnlp]
+Agent router-drill-2f02-lint-error-1-4r6c9-0zds4-jpb57 is provisioned from template router_drill_2F02-lint-error_1-4r6c9-0zds4
+---
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  annotations:
+    kubernetes.jenkins.io/last-refresh: "1794988293252"
+    buildUrl: "http://jenkins.jenkins.svc.cluster.local:8080/job/router/job/drill%252F02-lint-error/1/"
+    runUrl: "job/router/job/drill%252F02-lint-error/1/"
+  labels:
+    jenkins/jenkins-jenkins-agent: "true"
+    jenkins/label-digest: "035c4ceccb845834a7c0d6b3d03e8756eff1f5e8"
+    jenkins/label: "router_drill_2F02-lint-error_1-4r6c9"
+    kubernetes.jenkins.io/controller: "http___jenkins_jenkins_svc_cluster_local_8080x"
+  name: "router-drill-2f02-lint-error-1-4r6c9-0zds4-jpb57"
+  namespace: "jenkins"
+spec:
+  containers:
+  - command:
+    - "sh"
+    - "-c"
+    - "trap 'exit 0' TERM; sleep infinity & wait"
+    image: "python:3.12-slim"
+    name: "python"
+    resources:
+      limits:
+        memory: "1536Mi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - args:
+    - "--save"
+    - ""
+    - "--maxmemory"
+    - "64mb"
+    image: "redis:8.10.3-alpine"
+    name: "redis"
+    resources:
+      limits:
+        memory: "128Mi"
+      requests:
+        cpu: "50m"
+        memory: "32Mi"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - command:
+    - "/busybox/cat"
+    image: "martizih/kaniko:v1.26.6-debug"
+    name: "kaniko"
+    resources:
+      limits:
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "256Mi"
+    tty: true
+    volumeMounts:
+    - mountPath: "/kaniko/.docker"
+      name: "docker-config"
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - env:
+    - name: "JENKINS_SECRET"
+      value: "********"
+    - name: "JENKINS_TUNNEL"
+      value: "jenkins-agent.jenkins.svc.cluster.local:50000"
+    - name: "JENKINS_AGENT_NAME"
+      value: "router-drill-2f02-lint-error-1-4r6c9-0zds4-jpb57"
+    - name: "REMOTING_OPTS"
+      value: "-noReconnectAfter 1d"
+    - name: "JENKINS_NAME"
+      value: "router-drill-2f02-lint-error-1-4r6c9-0zds4-jpb57"
+    - name: "JENKINS_AGENT_WORKDIR"
+      value: "/home/jenkins/agent"
+    - name: "JENKINS_URL"
+      value: "http://jenkins.jenkins.svc.cluster.local:8080/"
+    image: "jenkins/inbound-agent:3391.va_37fa_a_305d6d-1-jdk25"
+    name: "jnlp"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  nodeSelector:
+    kubernetes.io/os: "linux"
+  restartPolicy: "Never"
+  volumes:
+  - name: "docker-config"
+    secret:
+      items:
+      - key: ".dockerconfigjson"
+        path: "config.json"
+      optional: true
+      secretName: "ghcr-creds"
+  - emptyDir:
+      medium: ""
+    name: "workspace-volume"
+
+Running on router-drill-2f02-lint-error-1-4r6c9-0zds4-jpb57 in /home/jenkins/agent/workspace/router_drill_02-lint-error
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+No credentials specified
+Cloning the remote Git repository
+Cloning with configured refspecs honoured and without tags
+Cloning repository git://host.docker.internal/ml-ops-skeleton
+ > git init /home/jenkins/agent/workspace/router_drill_02-lint-error # timeout=10
+Fetching upstream changes from git://host.docker.internal/ml-ops-skeleton
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git fetch --no-tags --force --progress -- git://host.docker.internal/ml-ops-skeleton +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url git://host.docker.internal/ml-ops-skeleton # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+Avoid second fetch
+Checking out Revision 92132515eca0d6374eebee9fc6abf3c55ff97862 (drill/02-lint-error)
+Commit message: "drill: lint error"
+First time build. Skipping changelog.
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] container
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] timeout
+Timeout set to expire in 30 min
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Setup)
+[Pipeline] sh
++ pip install --quiet uv==0.11.28
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 92132515eca0d6374eebee9fc6abf3c55ff97862 # timeout=10
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 26.3
+[notice] To update, run: pip install --upgrade pip
++ uv sync --frozen
+Using CPython 3.12.16 interpreter at: /usr/local/bin/python3.12
+Creating virtual environment at: .venv
+Downloading pygments (1.2MiB)
+Downloading pydantic-core (2.0MiB)
+Downloading lupa (1.7MiB)
+Downloading numpy (15.0MiB)
+Downloading ruff (9.7MiB)
+ Downloaded lupa
+ Downloaded pydantic-core
+ Downloaded pygments
+ Downloaded ruff
+ Downloaded numpy
+Prepared 37 packages in 2.46s
+Installed 37 packages in 312ms
+ + annotated-doc==0.0.5
+ + annotated-types==0.8.0
+ + anyio==4.15.1
+ + certifi==2026.7.22
+ + click==8.5.0
+ + coverage==7.17.3
+ + fakeredis==2.40.0
+ + fastapi==0.146.0
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + idna==3.20
+ + iniconfig==2.3.1
+ + lupa==2.8
+ + markdown-it-py==4.2.0
+ + mdurl==0.1.2
+ + numpy==2.5.4
+ + opentelemetry-api==1.45.1
+ + packaging==26.3
+ + pluggy==1.7.0
+ + prometheus-client==0.26.0
+ + pydantic==2.14.1
+ + pydantic-core==2.50.1
+ + pygments==2.21.0
+ + pytest==9.2.0
+ + pytest-cov==7.1.0
+ + pyyaml==6.0.3
+ + redis==8.1.0
+ + rich==15.0.0
+ + ruff==0.17.5
+ + shellingham==1.5.4
+ + sortedcontainers==2.4.0
+ + starlette==1.9.0
+ + typer==0.27.3
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.4
+ + uvicorn==0.54.0
++ mkdir -p reports
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Checks)
+[Pipeline] parallel
+[Pipeline] { (Branch: Lint)
+[Pipeline] { (Branch: Unit + API tests)
+[Pipeline] stage
+[Pipeline] { (Lint)
+[Pipeline] stage
+[Pipeline] { (Unit + API tests)
+[Pipeline] sh
+[Pipeline] sh
++ uv run ruff check . --output-format=concise
+app/cache.py:1:1: I001 [*] Import block is un-sorted or un-formatted
+app/cache.py:1:8: F401 [*] `sys` imported but unused
+app/cache.py:16:1: E402 Module level import not at top of file
+app/cache.py:17:1: E402 Module level import not at top of file
+app/cache.py:18:1: E402 Module level import not at top of file
+app/cache.py:19:1: E402 Module level import not at top of file
+app/cache.py:20:1: E402 Module level import not at top of file
+app/cache.py:21:1: E402 Module level import not at top of file
+app/cache.py:23:1: E402 Module level import not at top of file
+app/cache.py:24:1: E402 Module level import not at top of file
+app/cache.py:25:1: E402 Module level import not at top of file
+app/cache.py:26:1: E402 Module level import not at top of file
+app/cache.py:27:1: E402 Module level import not at top of file
+app/cache.py:28:1: E402 Module level import not at top of file
+app/cache.py:30:1: E402 Module level import not at top of file
+Found 15 errors.
+[*] 2 fixable with `--fix`.
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+Failed in branch Lint
++ uv run pytest -q tests/unit tests/api --cov --cov-report= --junitxml=reports/junit-unit.xml
+........................................................................ [ 97%]
+..                                                                       [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /home/jenkins/agent/workspace/router_drill_02-lint-error/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+74 passed, 1 warning in 1.63s
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // parallel
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Integration tests)
+Stage "Integration tests" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Coverage gate (>= 80%))
+Stage "Coverage gate (>= 80%)" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Routing eval gate)
+Stage "Routing eval gate" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build image)
+Stage "Build image" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Bump GitOps (dev))
+Stage "Bump GitOps (dev)" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] archiveArtifacts
+Archiving artifacts
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // timeout
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // container
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] }
+[Pipeline] // podTemplate
+[Pipeline] End of Pipeline
+ERROR: script returned exit code 1
+Finished: FAILURE
