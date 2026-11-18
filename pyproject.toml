@@ -57,5 +57,5 @@ markers = ["integration: needs a real Redis at REDIS_URL (default redis://localh
 addopts = "-m 'not integration'"
 
 [tool.coverage.run]
-source = ["app", "mock_llm"]
+source = ["app", "mock_llm", "tools"]
 omit = ["app/minilm.py"]     # optional extra, not installed in CI

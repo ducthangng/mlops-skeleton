@@ -1,0 +1,10 @@
+[Pipeline] { (Lint)
+[Pipeline] sh
++ uv run ruff check . --output-format=concise
+app/main.py:12:1: F401 [*] `os` imported but unused
+app/cache.py:40:89: E501 Line too long (131 > 120)
+Found 2 errors.
+[*] 1 fixable with the `--fix` option.
+[Pipeline] }
+ERROR: script returned exit code 1
+Finished: FAILURE

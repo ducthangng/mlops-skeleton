@@ -1,0 +1,46 @@
+Branch indexing
+ > git rev-parse --resolve-git-dir /var/jenkins_home/caches/git-07737ad7042497b50198942d36711452/.git # timeout=10
+Setting origin to git://host.docker.internal/ml-ops-skeleton
+ > git config remote.origin.url git://host.docker.internal/ml-ops-skeleton # timeout=10
+Fetching origin...
+Fetching upstream changes from origin
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git config --get remote.origin.url # timeout=10
+ > git fetch --no-tags --force --progress -- origin +refs/heads/*:refs/remotes/origin/* # timeout=10
+Seen branch in repository origin/feat/cv-parity
+Seen branch in repository origin/main
+Seen 2 remote branches
+Obtained Jenkinsfile from 0c10abf862f820ec6bf188e971347242c949d541
+[Pipeline] Start of Pipeline
+[Pipeline] podTemplate
+[Pipeline] {
+[Pipeline] node
+Created Pod: kubernetes jenkins/router-feat-2fcv-parity-1-8grt1-z5w6t-n2ff1
+[PodInfo] jenkins/router-feat-2fcv-parity-1-8grt1-z5w6t-n2ff1
+	Container [jnlp] waiting [ContainerCreating] No message
+	Container [kaniko] waiting [ContainerCreating] No message
+	Container [python] waiting [ContainerCreating] No message
+	Pod [Pending][PodSandboxNotReady] no pod sandbox exists
+	Pod [Pending][ContainersNotReady] containers with unready status: [python kaniko jnlp]
+Still waiting to schedule task
+‘router-feat-2fcv-parity-1-8grt1-z5w6t-n2ff1’ is offline
+[PodInfo] jenkins/router-feat-2fcv-parity-1-8grt1-z5w6t-n2ff1
+	Container [jnlp] waiting [ContainerCreating] No message
+	Container [kaniko] waiting [ContainerCreating] No message
+	Container [python] waiting [ContainerCreating] No message
+	Pod [Pending][PodSandboxNotReady] no pod sandbox exists
+	Pod [Pending][ContainersNotReady] containers with unready status: [python kaniko jnlp]
+[PodInfo] jenkins/router-feat-2fcv-parity-1-8grt1-z5w6t-n2ff1
+	Container [jnlp] waiting [ContainerCreating] No message
+	Container [kaniko] waiting [ContainerCreating] No message
+	Container [python] waiting [ContainerCreating] No message
+	Pod [Pending][PodSandboxNotReady] no pod sandbox exists
+	Pod [Pending][ContainersNotReady] containers with unready status: [python kaniko jnlp]
+Aborted by Jenkins Admin
+[Pipeline] // node
+[Pipeline] }
+[Pipeline] // podTemplate
+[Pipeline] End of Pipeline
+org.jenkinsci.plugins.workflow.actions.ErrorAction$ErrorId: 73b2875f-264e-4294-b1ea-7f3b6ed71054
+Finished: ABORTED

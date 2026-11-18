@@ -1,0 +1,7 @@
+Created Pod: kubernetes jenkins/router-main-12-abcde
+[Normal][jenkins/router-main-12-abcde][Pulling] Pulling image "python:3.12-slimm"
+[Warning][jenkins/router-main-12-abcde][Failed] Failed to pull image "python:3.12-slimm": manifest unknown
+[Warning][jenkins/router-main-12-abcde][Failed] Error: ErrImagePull
+[Warning][jenkins/router-main-12-abcde][Failed] Error: ImagePullBackOff
+ERROR: Unable to create pod
+Finished: FAILURE

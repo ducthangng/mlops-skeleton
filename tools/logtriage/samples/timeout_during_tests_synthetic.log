@@ -1,0 +1,7 @@
+[Pipeline] { (Integration tests)
++ REDIS_URL=redis://localhost:6379/0 uv run pytest -q -m integration tests/integration
+....
+Timeout has been exceeded
+Cancelling nested steps due to timeout
+FAILED tests/integration/test_redis_integration.py::test_token_bucket_refills
+Finished: ABORTED

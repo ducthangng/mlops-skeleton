@@ -1,0 +1,7 @@
+[Pipeline] { (Build image)
+[Pipeline] container
+INFO[0012] Taking snapshot of full filesystem...
+[Pipeline] }
+ERROR: Container kaniko was terminated (Exit Code: 137, Reason: OOMKilled)
+ERROR: script returned exit code 137
+Finished: FAILURE
