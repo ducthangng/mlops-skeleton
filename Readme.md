@@ -157,6 +157,8 @@ What this means for this workload: almost all of the saving comes from the exact
 cp .env.example .env    # once: fill GITHUB_USER / GITHUB_PAT (gitignored)
 make up                 # idempotent: cluster, ArgoCD, Jenkins (never upgraded), secrets, JCasC, jobs, apps
 make status                              # nodes, apps, pods
+make ui                                  # Jenkins :8080, ArgoCD :8443, gateway dev :8000/docs (+ passwords)
+make llm-key                             # UPSTREAM_API_KEY from .env -> Secret llm-upstream, restart gateways
 make passwords                           # ArgoCD + Jenkins admin
 make promote                             # dev tag -> values-prod.yaml as a commit in the GitOps repo (review, push)
 git -C ../mlops-gitops revert <sha>      # rollback, then push; ArgoCD does the rest

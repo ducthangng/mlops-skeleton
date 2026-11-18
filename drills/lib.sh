@@ -44,9 +44,11 @@ dev_image_tag() {
   k -n router-dev get deploy gw-router -o jsonpath='{.spec.template.spec.containers[0].image}' | sed 's/.*://'
 }
 
-drills_release() {  # drills_release [--set k=v ...]   (always starts from values-dev.yaml + current dev image)
+drills_release() {  # drills_release [--set k=v ...]   (values-dev.yaml + current dev image, but always the mock LLM: drills never call a paid API)
   h upgrade --install gw "$GITOPS_DIR/charts/router" -n "$DRILL_NS" --create-namespace \
-    -f "$GITOPS_DIR/charts/router/values-dev.yaml" --set image.tag="$(dev_image_tag)" "$@" \
+    -f "$GITOPS_DIR/charts/router/values-dev.yaml" --set image.tag="$(dev_image_tag)" \
+    --set mockLlm.enabled=true --set gateway.upstream.baseUrl= --set gateway.upstream.modelMap= \
+    --set gateway.upstream.apiKeySecret= "$@" \
     --wait=hookOnly >/dev/null
 }
 

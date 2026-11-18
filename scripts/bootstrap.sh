@@ -109,6 +109,19 @@ step_secrets() {
   done
 }
 
+step_llm_secret() {
+  log "LLM provider key (UPSTREAM_API_KEY from .env -> Secret llm-upstream; chart reads it if set)"
+  if [[ -z ${UPSTREAM_API_KEY:-} ]]; then
+    skip "UPSTREAM_API_KEY not set in .env (gateway uses the mock LLM unless values-<env>.yaml sets a real baseUrl)"
+    return 0
+  fi
+  for ns in "${ENVS[@]/#/router-}"; do
+    k -n "$ns" create secret generic llm-upstream --from-file=api-key=<(printf %s "$UPSTREAM_API_KEY") \
+      --dry-run=client -o yaml | k apply -f - >/dev/null
+    ok "$ns/llm-upstream"
+  done
+}
+
 step_jenkins_config() {
   log "Jenkins configuration as code"
   if [[ -x $ROOT/scripts/jenkins-configure.sh ]]; then
@@ -151,12 +164,14 @@ EOF
 }
 
 main() {
+  if (($#)); then for s in "$@"; do "step_$s"; done; return; fi   # e.g. scripts/bootstrap.sh llm_secret
   step_tools
   step_cluster
   step_argocd
   step_jenkins
   step_namespaces
   step_secrets
+  step_llm_secret
   step_jenkins_config
   step_apps
   summary

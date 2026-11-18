@@ -25,12 +25,20 @@ class UpstreamResult:
     fell_back: bool
 
 
+def parse_model_map(spec: str) -> dict[str, str]:
+    """'small-chat=gpt-4o-mini,coder=gpt-4.1' -> {'small-chat': 'gpt-4o-mini', 'coder': 'gpt-4.1'}"""
+    pairs = (item.split("=", 1) for item in spec.split(",") if "=" in item)
+    return {k.strip(): v.strip() for k, v in pairs if k.strip() and v.strip()}
+
+
 class UpstreamClient:
     def __init__(self, base_url: str, api_key: str = "", timeout_s: float = 10.0,
-                 retries: int = 2, backoff_s: float = 0.1, transport: httpx.AsyncBaseTransport | None = None):
+                 retries: int = 2, backoff_s: float = 0.1, transport: httpx.AsyncBaseTransport | None = None,
+                 model_map: dict[str, str] | None = None):
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         self.http = httpx.AsyncClient(base_url=base_url, timeout=timeout_s, headers=headers, transport=transport)
         self.retries, self.backoff_s = retries, backoff_s
+        self.model_map = model_map or {}   # logical route model -> provider model id (e.g. coder -> gpt-4.1)
 
     async def aclose(self) -> None:
         await self.http.aclose()
@@ -38,10 +46,12 @@ class UpstreamClient:
     async def _call_model(self, model: str, payload: dict) -> tuple[dict, int]:
         """Try one model up to 1 + retries times. Returns (body, attempts)."""
         last = ""
+        body = {k: v for k, v in payload.items() if v is not None}   # providers reject explicit nulls
+        body["model"] = self.model_map.get(model, model)
         for attempt in range(1, self.retries + 2):
             UPSTREAM_CALLS.labels(model).inc()
             try:
-                resp = await self.http.post("/chat/completions", json={**payload, "model": model})
+                resp = await self.http.post("/chat/completions", json=body)
             except httpx.TimeoutException:
                 reason, last = "timeout", "timeout"
             except httpx.TransportError as e:

@@ -3,7 +3,7 @@ import asyncio
 import httpx
 import pytest
 
-from app.upstream import UpstreamClient, UpstreamError
+from app.upstream import UpstreamClient, UpstreamError, parse_model_map
 
 OK = {"id": "x", "object": "chat.completion", "created": 0, "model": "m",
       "choices": [{"index": 0, "message": {"role": "assistant", "content": "hi"}, "finish_reason": "stop"}]}
@@ -72,3 +72,17 @@ def test_no_fallback_when_same_model():
     with pytest.raises(UpstreamError):
         run(client(t).chat({"messages": []}, "small-chat", "small-chat"))
     assert calls == ["small-chat"] * 3
+
+
+def test_model_map_sends_provider_id_and_drops_nulls():
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(__import__("json").loads(request.content))
+        return httpx.Response(200, json=OK)
+    c = UpstreamClient("http://up/v1", transport=httpx.MockTransport(handler),
+                       model_map=parse_model_map("coder=gpt-4.1, small-chat=gpt-4o-mini,bad"))
+    r = run(c.chat({"messages": [], "temperature": None, "max_tokens": 5}, "coder"))
+    assert seen[0] == {"messages": [], "max_tokens": 5, "model": "gpt-4.1"}
+    assert r.model == "coder"                          # metrics and headers keep the logical name
+    assert parse_model_map("") == {}

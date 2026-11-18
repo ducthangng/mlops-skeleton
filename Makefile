@@ -4,7 +4,7 @@ GITOPS_DIR ?= ../mlops-gitops
 K := kubectl --context $(CTX)
 
 # ---------- platform ----------
-.PHONY: up down status passwords retire-gw promote
+.PHONY: up down status passwords retire-gw promote llm-key ui
 
 up:            ## idempotent bring-up (cluster, ArgoCD, Jenkins, secrets, JCasC, jobs, apps)
 	scripts/bootstrap.sh
@@ -22,6 +22,17 @@ status:        ## what is running and is it healthy
 passwords:     ## admin passwords for ArgoCD and Jenkins
 	@printf 'ArgoCD  admin / '; $(K) -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
 	@printf 'Jenkins admin / '; $(K) -n jenkins get secret jenkins -o jsonpath='{.data.jenkins-admin-password}' | base64 -d; echo
+
+llm-key:       ## push UPSTREAM_API_KEY from .env into Secret llm-upstream (dev+prod), restart the gateways
+	scripts/bootstrap.sh llm_secret
+	@for ns in router-dev router-prod; do $(K) -n $$ns rollout restart deploy/gw-router 2>/dev/null || true; done
+
+ui:            ## port-forward Jenkins :8080, ArgoCD :8443, gateway dev :8000 (Ctrl-C stops all)
+	@$(MAKE) -s passwords; echo "Jenkins http://localhost:8080  ArgoCD https://localhost:8443  gateway http://localhost:8000/docs"
+	@trap 'kill 0' INT TERM; \
+	 $(K) -n jenkins port-forward svc/jenkins 8080:8080 >/dev/null & \
+	 $(K) -n argocd port-forward svc/argocd-server 8443:443 >/dev/null & \
+	 $(K) -n router-dev port-forward svc/gw-router 8000:80 >/dev/null & wait
 
 retire-gw:     ## delete the legacy ArgoCD app 'gw' (ns default) and the resources it created
 	$(K) -n argocd patch application gw --type merge -p '{"metadata":{"finalizers":["resources-finalizer.argocd.argoproj.io"]}}'

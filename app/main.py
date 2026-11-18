@@ -21,7 +21,7 @@ from app.config import load_routes
 from app.embedder import make_embedder
 from app.metrics import CACHE_HITS, CACHE_MISSES, RATE_LIMITED, REQUEST_LATENCY
 from app.ratelimit import RateLimiter, parse_clients
-from app.upstream import UpstreamClient, UpstreamError
+from app.upstream import UpstreamClient, UpstreamError, parse_model_map
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(levelname)s %(name)s %(message)s")
 
@@ -56,6 +56,7 @@ class Settings:
     upstream_timeout_s: float = field(default_factory=lambda: float(os.getenv("UPSTREAM_TIMEOUT_S", "10")))
     upstream_retries: int = field(default_factory=lambda: int(os.getenv("UPSTREAM_RETRIES", "2")))
     upstream_backoff_s: float = field(default_factory=lambda: float(os.getenv("UPSTREAM_BACKOFF_S", "0.1")))
+    model_map: str = field(default_factory=lambda: os.getenv("MODEL_MAP", ""))  # logical=provider,...
     fallback_model: str = field(default_factory=lambda: os.getenv("FALLBACK_MODEL", "small-chat"))
     healthz_fail: bool = field(default_factory=lambda: _env_bool("HEALTHZ_FAIL"))   # drill only
 
@@ -119,7 +120,8 @@ def create_app(settings: Settings | None = None, redis_client: aioredis.Redis | 
         app.state.semantic = semantic
         app.state.limiter = RateLimiter(r, s.rate, s.burst, parse_clients(s.rate_clients), s.rate_fail_mode)
         app.state.upstream = UpstreamClient(s.upstream_url, s.upstream_key, s.upstream_timeout_s,
-                                            s.upstream_retries, s.upstream_backoff_s, upstream_transport)
+                                            s.upstream_retries, s.upstream_backoff_s, upstream_transport,
+                                            model_map=parse_model_map(s.model_map))
         yield
         await app.state.upstream.aclose()
         if r is not None and redis_client is None:
