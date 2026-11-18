@@ -222,11 +222,11 @@ def _wait(url: str, timeout_s: float = 15) -> None:
 
 
 async def _drive(url: str, seconds: float, concurrency: int, rps: float,
-                 prompts: list[str]) -> list[tuple[str, int, float]]:
+                 prompts: list[str]) -> list[tuple[str, int, float, float]]:
     """Paced (open-ish loop): each worker sends one request every concurrency/rps seconds, so the
     offered load is fixed and the 429 rate measures the limiter, not how fast this laptop is."""
     import httpx
-    out: list[tuple[str, int, float]] = []
+    out: list[tuple[str, int, float, float]] = []
     rng = random.Random(42)
     start = time.perf_counter()
     stop = start + seconds
@@ -234,6 +234,7 @@ async def _drive(url: str, seconds: float, concurrency: int, rps: float,
 
     async def worker(i: int):
         nxt = start + i * interval / concurrency          # stagger the workers
+        # out rows: (client, status, ms, t_since_start)
         async with httpx.AsyncClient(base_url=url, timeout=10) as c:
             while (now := time.perf_counter()) < stop:
                 if nxt > now:
@@ -247,7 +248,7 @@ async def _drive(url: str, seconds: float, concurrency: int, rps: float,
                     code = r.status_code
                 except httpx.HTTPError:
                     code = 0
-                out.append((client, code, (time.perf_counter() - t0) * 1000))
+                out.append((client, code, (time.perf_counter() - t0) * 1000, t0 - start))
     await asyncio.gather(*(worker(i) for i in range(concurrency)))
     return out
 
@@ -257,6 +258,7 @@ def load(ctx: Ctx) -> Result:
     seconds = float(ctx.getenv("LOAD_SECONDS", "30"))
     concurrency = int(ctx.getenv("LOAD_CONCURRENCY", "16"))
     rps = float(ctx.getenv("LOAD_RPS", "100"))
+    warmup = float(ctx.getenv("LOAD_WARMUP_S", "3"))      # cold start (imports, index creation) excluded
     redis_url = ctx.getenv("REDIS_URL", "redis://localhost:6379/0")
     mport, gport = _free_port(), _free_port()
     env = {**os.environ, **ctx.env, "MOCK_LATENCY_MS": ctx.getenv("MOCK_LATENCY_MS", "50"),
@@ -272,7 +274,8 @@ def load(ctx: Ctx) -> Result:
         import redis
         redis.Redis.from_url(redis_url).flushdb()
         prompts = [json.loads(line)["prompt"] for line in open("evals/dev.jsonl")][:30]
-        rows = asyncio.run(_drive(f"http://127.0.0.1:{gport}", seconds, concurrency, rps, prompts))
+        rows = asyncio.run(_drive(f"http://127.0.0.1:{gport}", seconds + warmup, concurrency, rps, prompts))
+        rows = [(c, code, ms) for c, code, ms, t in rows if t >= warmup]
     finally:
         for p in procs:
             p.terminate()
@@ -292,7 +295,8 @@ def load(ctx: Ctx) -> Result:
     }
     for k in ("p95_ms", "error_rate", "rate_429_noisy", "rate_429_others"):
         res.evidence[k] = f"{k}={res.metrics[k]} ({n} requests, offered {rps:g} rps, {seconds:g}s)"
-    res.log(f"{n} requests in {seconds:g}s, offered {rps:g} rps by {concurrency} workers; 20% from client "
+    res.log(f"{n} requests in {seconds:g}s (after {warmup:g}s warm-up), offered {rps:g} rps by "
+            f"{concurrency} workers; 20% from client "
             "'noisy' (limit 2/s, burst 5), the rest from 8 clients (limit 50/s each)")
     res.log(json.dumps(res.metrics))
     return res
@@ -312,8 +316,9 @@ COMPARE = {
 }
 
 # Files whose content decides the result. Unchanged inputs -> reuse the cached passing result.
+# (qualify/stages.py + qualify/compare.py are added to every stage by qualify.run.inputs_key)
 INPUTS = {
-    "config_lint": ["{routes}", "qualify/stages.py"],
+    "config_lint": ["{routes}"],
     "contract": ["app/*.py", "mock_llm/*.py", "{golden}/openapi.json"],
     "routing": ["{routes}", "app/classifier.py", "app/config.py", "evals/dev.jsonl", "evals/test.jsonl",
                 "{golden}/routing_decisions.json"],

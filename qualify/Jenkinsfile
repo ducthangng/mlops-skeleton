@@ -30,7 +30,8 @@ spec:
 }
 
 def qualify(String stage) {
-  sh "uv run python -m qualify.run --stage ${stage} --scenario ${params.SCENARIO} --out reports/qualify --cache-dir /cache"
+  def cache = params.NO_CACHE ? '' : '--cache-dir /cache'
+  sh "uv run python -m qualify.run --stage ${stage} --scenario ${params.SCENARIO} --out reports/qualify ${cache}"
 }
 
 pipeline {
@@ -43,6 +44,7 @@ pipeline {
   parameters {
     choice(name: 'SCENARIO', choices: ['clean', 'bad', 'partial'],
            description: 'clean = candidate as-is; bad = broken config; partial = routing regression')
+    booleanParam(name: 'NO_CACHE', defaultValue: false, description: 'run every stage even if its inputs did not change')
   }
   triggers { pollSCM('H/2 * * * *') }
   options {

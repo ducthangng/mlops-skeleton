@@ -44,7 +44,7 @@ def load_ctx(scenario: str, extra_env: list[str]) -> Ctx:
 
 def inputs_key(stage: str, ctx: Ctx) -> str:
     h = hashlib.sha256()
-    for pattern in INPUTS[stage] + [f"{{golden}}/{stage}.json"]:
+    for pattern in INPUTS[stage] + ["qualify/stages.py", "qualify/compare.py", f"{{golden}}/{stage}.json"]:
         pattern = pattern.replace("{routes}", ctx.routes_path).replace("{golden}", str(ctx.golden_dir))
         for f in sorted(glob.glob(pattern)):
             h.update(f.encode() + b"\0" + Path(f).read_bytes())
