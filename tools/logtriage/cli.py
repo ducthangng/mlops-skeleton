@@ -3,12 +3,11 @@
   # local log files
   uv run python -m tools.logtriage analyze tools/logtriage/samples/*.log
 
-  # Jenkins (kubectl -n jenkins port-forward svc/jenkins 8081:8080)
+  # Jenkins (make jenkins: port-forward on :8080)
   JENKINS_PASSWORD=$(make -s passwords | ...) \
-  uv run python -m tools.logtriage jenkins --url http://localhost:8081 --job router --branch main --out reports/triage
+  uv run python -m tools.logtriage jenkins --url http://localhost:8080 --job ai-gateway --out reports/triage
 
-  # qualification run vs golden (B7)
-  uv run python -m tools.logtriage qualify-diff --run reports/qualify --golden qualify/golden
+Qualification diffs (new failures vs golden) live with the product: python -m qualify.diff in custom-ai-gateway/gateway.
 """
 
 import json
@@ -22,7 +21,7 @@ from tools.logtriage.classify import classify
 from tools.logtriage.jenkins import Jenkins
 from tools.logtriage.stats import slow_builds
 
-app = typer.Typer(add_completion=False, help="Classify CI failures; diff qualification runs against golden.")
+app = typer.Typer(add_completion=False, help="Classify CI failures and flag slow builds (Jenkins logs or local files).")
 
 
 def _write(out: Path | None, name: str, data: dict, markdown: str) -> None:
@@ -53,7 +52,7 @@ def analyze(logs: list[Path], out: Annotated[Path | None, typer.Option(help="dir
 @app.command()
 def jenkins(
     url: Annotated[str, typer.Option(envvar="JENKINS_URL")] = "http://localhost:8081",
-    job: Annotated[str, typer.Option(help="job (folder path), e.g. router or qualify")] = "router",
+    job: Annotated[str, typer.Option(help="job (folder path), e.g. ai-gateway or qualify")] = "ai-gateway",
     branch: Annotated[str, typer.Option(help="multibranch branch; '' for a plain pipeline job")] = "main",
     last: int = 20,
     user: Annotated[str, typer.Option(envvar="JENKINS_USER")] = "admin",
@@ -95,19 +94,3 @@ def jenkins(
                   f"(mean {s.mean_s:.0f}s, sigma {s.stdev_s:.0f}s)" for s in slow.values()]
     _write(out, "triage", {"job": title, "builds": rows, "slow": [vars(s) for s in slow.values()]},
            "\n".join(lines))
-
-
-@app.command("qualify-diff")
-def qualify_diff(
-    run: Annotated[Path, typer.Option(help="dir with <stage>.json + <stage>.log")] = Path("reports/qualify"),
-    golden: Annotated[Path, typer.Option()] = Path("qualify/golden"),
-    out: Annotated[Path | None, typer.Option()] = None,
-    fail: Annotated[bool, typer.Option(help="exit 1 on new failures or regressions")] = True,
-):
-    """Report ONLY what is new compared with golden: new failures and regressed metrics, with evidence."""
-    from tools.logtriage.qualify_diff import diff_run
-
-    report, markdown = diff_run(run, golden)
-    _write(out, "qualify-diff", report, markdown)
-    if fail and report["regressions"]:
-        raise typer.Exit(1)

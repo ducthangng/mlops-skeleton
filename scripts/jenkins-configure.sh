@@ -5,13 +5,13 @@
 #  1. check the installed plugins provide what we use (job-dsl absent -> jobs via REST + config.xml)
 #  2. JCasC: ConfigMap labelled for the chart's config-reload sidecar (hot reload, no restart)
 #  3. credentials github-pat + ghcr-creds: synced from k8s Secret jenkins/github-pat
-#  4. jobs router (multibranch) + qualify (pipeline): create or update from committed config.xml
+#  4. jobs ai-gateway (multibranch CI) + qualify (pipeline): create or update from committed config.xml
 #
-# Env: APP_REPO_URL (default GitHub mlops-skeleton), APP_BRANCH (qualify job, default main)
+# Env: APP_REPO_URL (product repo, default GitHub custom-ai-gateway), APP_BRANCH (qualify job, default main)
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
-APP_REPO_URL=${APP_REPO_URL:-https://github.com/ducthangng/mlops-skeleton.git}
+APP_REPO_URL=${APP_REPO_URL:-https://github.com/ducthangng/custom-ai-gateway.git}
 APP_BRANCH=${APP_BRANCH:-main}
 JENKINS_DIR=$GITOPS_DIR/jenkins
 REQUIRED_PLUGINS=(configuration-as-code workflow-multibranch workflow-aggregator git kubernetes credentials
@@ -97,13 +97,16 @@ apply_jobs() {
   local cred="" xml
   credential_exists github-pat && cred=github-pat
   [[ -n $cred ]] || warn "no github-pat credential: jobs clone anonymously (fine for a public repo / local git daemon)"
-  for job in router qualify; do
+  for job in ai-gateway qualify; do
     xml=$(<"$JENKINS_DIR/jobs/$job.xml")
     xml=${xml//@@APP_REPO_URL@@/"$(xml_escape "$APP_REPO_URL")"}; xml=${xml//@@APP_BRANCH@@/"$APP_BRANCH"}
     xml=${xml//@@CREDENTIALS_ID@@/"$cred"}
     upsert_job "$job" "$xml"
   done
-  jenkins_api POST /job/router/build?delay=0 </dev/null >/dev/null && ok "router: branch indexing triggered"
+  jenkins_api POST /job/ai-gateway/build?delay=0 </dev/null >/dev/null && ok "ai-gateway: branch indexing triggered"
+  if [[ $(jenkins_api GET "/job/router/api/json?tree=name" </dev/null | http_code) == 200 ]]; then
+    warn "job 'router' (retired router service) still exists: delete it in the UI (router -> Delete Multibranch Pipeline)"
+  fi
 }
 
 verify() {

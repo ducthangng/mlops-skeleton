@@ -15,6 +15,40 @@ because the per-environment Helm values need the mock LLM and the new env vars. 
 
 ---
 
+## R (2026-11-18): routing becomes a module of the product
+Decision (yours): the router is a module of the AI gateway product, not a separate service. Nothing committed.
+
+- **Product (custom-ai-gateway), new:** `gateway/gateway/routing/` (RuleClassifier, routes loader),
+  plugin `gateway/plugins/rules_router.py` (JJ: route -> first candidate model whose provider has a key, else
+  the user's choice), plugin `gateway/plugins/redis_cache.py` (Redis, no retries, fail-open via the gateway),
+  `routes.yaml` (same 77 rules; targets are now `provider/model` from `catalog.yaml`), `evals/` (same dev/test
+  split, new baseline), `qualify/` (5 stages rewritten for `/api/chat` SSE, Postgres/SQLite, Redis cache;
+  `qualify.diff`), `tests/test_{routing,redis_cache,qualify}.py`, root `Jenkinsfile`, root `.dockerignore`.
+  Changed: `Dockerfile` (+ routes.yaml), `mock_provider.py` (delay from `GATEWAY_MOCK_DELAY_S`),
+  `pyproject.toml` (+ redis; dev: fakeredis, pytest-cov; pytest marker `integration`), `.gitignore`.
+- **GitOps:** new chart `charts/ai-gateway` (gateway + Postgres StatefulSet + Redis; `ghcr-pull`,
+  `postgres-auth`, `llm-providers` Secrets referenced, never stored), `charts/router` deleted, apps point at
+  `charts/ai-gateway` in ns `gateway-dev` / `gateway-prod`, job `router.xml` -> `ai-gateway.xml`, qualify job
+  script path `gateway/qualify/Jenkinsfile`.
+- **Platform (this repo):** removed `app/ mock_llm/ evals/ qualify/ routes.yaml Dockerfile Jenkinsfile
+  tests/{api,integration} scripts/bench.sh tools/logtriage/qualify_diff.py`; results moved to
+  `docs/archive/router-service/`. bootstrap: `postgres-auth` (random, once), `llm-providers` from
+  ANTHROPIC/OPENAI/GEMINI keys in `.env` (old `UPSTREAM_API_KEY` still read as the OpenAI key). Makefile:
+  `app` (UI on :8090), `gw-test`, `gw-eval`, `gw-qualify`, `retire-router`. Drills rewritten for the product;
+  08 rate limit, 09 mock-llm faults, 13 router OOM, 15 semantic false hit replaced by 08 Postgres down,
+  09 invalid provider key, 13 gateway OOM, 15 truncated answer not cached.
+- **Measured:** image 313 MB, `docker build --no-cache` 12 s; 37 unit/API + 1 integration test, coverage 84%
+  of `gateway`; JJ dev 100% (52), test 93.75% (48); qualify bad 0.19 s / partial 1.3 s / clean 36 s / cached 0.07 s;
+  load 608 chats at 20/s offered, p95 17.9 ms, 0 errors (SQLite, mock); cache stage 100% repeat hits, 100% ok
+  with Redis down. Chart installed in kind with the local image: JJ routed, miss -> hit, UI 200.
+- **Drills verified:** 01-03 (on a copy of the uncommitted tree), 08, 09, 12, 13, 14, 15, 16.
+  **Not re-run:** 04, 05, 06, 07, 10, 11 (need GHCR image / pushed repos).
+- **Bugs found:** postgres-auth password ended with `\n` (`openssl rand` + `--from-file`) -> gateway could not
+  log in (drill 08 on a fresh namespace); a process substitution reused for 2 namespaces would have made an
+  empty Secret; a pod does not see a changed `envFrom` Secret until it restarts (drill 09).
+- **Dropped with the router service** (no equivalent in the product yet): per-client rate limiting, semantic
+  cache, Prometheus `/metrics`, MiniLM option, replay benchmark. See the CV table below.
+
 ## B0: black-box AI, image without PyTorch
 - Built: `app/classifier.py` (`Classifier.classify`, default `RuleClassifier`), `app/embedder.py`
   (`Embedder.embed`, default `HashingEmbedder`), `app/minilm.py` (optional extra `minilm`, lazy import,
@@ -164,21 +198,27 @@ because the per-environment Helm values need the mock LLM and the new env vars. 
 | Job DSL (plugin absent) | committed config.xml + REST create/update |
 | `junit` step (plugin absent) | archive the JUnit XML |
 
-## CV bullet -> proof
+## CV bullet -> proof (after the 2026-11-18 restructure)
 
-| CV bullet | file / command that proves it |
-|---|---|
-| 1. GitOps delivery; CI never needs cluster access; rollback = git revert | `Jenkinsfile` (no kubectl; output = GHCR image + commit to `values-dev.yaml`), `mlops-router-gitops/argocd/gw-*.yaml`, `make drill-04` + `make drill-04-fix` (ErrImagePull -> `git revert` -> ArgoCD rolls back), `make drill-05` (selfHeal) |
-| 2. pytest unit + integration in Jenkins on every commit; failing build never reaches the cluster | `tests/{unit,api,integration}`, `Jenkinsfile` stages, `make drill-01` (Jenkins: later stages skipped), `tools/logtriage/samples/real_test_drill01.log` |
-| 3. Prometheus metrics: latency, cache hit rate (exact + semantic), rate-limit events | `app/metrics.py`, `curl http://gw-router/metrics` (drills 06, 08, 09 print them), `tests/api/test_api.py::test_healthz_and_metrics` |
-| 4. FastAPI + Redis as Helm charts, values per env; cluster setup scripted in Bash | `mlops-router-gitops/charts/router/values-{dev,prod}.yaml`, `scripts/bootstrap.sh` (`make up`) |
-| 5. Classifies each prompt, forwards to a suitable model/config, per-client rate limits | `app/classifier.py`, `routes.yaml`, `app/upstream.py`, `app/ratelimit.py`, `make eval`, `make drill-08`, `make drill-09` |
-| 6. Semantic cache on local embeddings + vector search; effect on LLM calls and latency measured | `app/embedder.py`, `app/cache.py` (RediSearch KNN / numpy), `make semantic-eval`, `make bench`, `docs/results/` |
+Status: **holds** = true for the current product + platform; **partly** = true with the caveat given;
+**retired** = was true only for the old router service (code in git history, numbers in
+`docs/archive/router-service/`); rewrite or drop the bullet before using it.
 
-## State left on this machine
-- Cluster: gw-dev / gw-prod are running the local image `local-c4640d0`. They were synced from a throwaway local
-  GitOps branch `verify/local` via `git://host.docker.internal`; that branch was deleted after verification, so it
-  cannot be pushed by accident. The Jenkins jobs point at the local app repo. The legacy app
-  `gw` (ns default) is untouched. The git daemon was stopped at the end, so ArgoCD/Jenkins will report fetch
-  errors until you push and run `make up` (which points them back at GitHub).
-- Jenkins credentials: none (no `GITHUB_PAT` was available). The dummy credentials used for testing were deleted.
+| CV bullet | status | file / command that proves it |
+|---|---|---|
+| 1. GitOps delivery; CI never needs cluster access; rollback = git revert | holds (full loop for the new image not run yet) | product `Jenkinsfile` (no kubectl; output = GHCR image + commit to `charts/ai-gateway/values-dev.yaml`), `mlops-router-gitops/argocd/gw-*.yaml`, `make drill-04` / `-fix`, `make drill-05` |
+| 2. pytest unit + integration in Jenkins on every commit; failing build never reaches the cluster | holds | product `gateway/tests/`, `Jenkinsfile` stages (coverage gate 80%, measured 84%), `make drill-01`, `make gw-test` |
+| 3. Prometheus metrics: latency, cache hit rate, rate-limit events | **retired** | the product has no `/metrics`; it records latency, cache status and routing per request in Postgres (`GET /api/requests`, `/api/stats`). Roadmap item |
+| 4. FastAPI + Redis (+ Postgres) as Helm charts, values per env; cluster setup scripted in Bash | holds | `mlops-router-gitops/charts/ai-gateway/values-{dev,prod}.yaml`, `scripts/bootstrap.sh` (`make up`) |
+| 5. Classifies each prompt, forwards to a suitable model/config | holds | product `gateway/routing/`, `gateway/plugins/rules_router.py`, `routes.yaml`, `make gw-eval` (held-out 93.75%), qualify routing stage |
+| 5b. … per-client rate limits | **retired** | not in the product |
+| 6. Semantic cache on local embeddings + vector search, measured | **retired** | the product has an exact Redis cache (`redis_cache.py`, qualify cache stage: 100% repeat hits, fail-open). Semantic numbers: `docs/archive/router-service/` |
+| 7. Release qualification: golden regression, fail fast, only new failures reported, cached stages | holds | product `gateway/qualify/`, `make gw-qualify SCENARIO=bad|partial`, `make drill-16` |
+
+## State left on this machine (2026-11-18)
+- Cluster: gw-dev / gw-prod still run the old router chart from GitHub `main` in ns router-dev / router-prod
+  (nothing pushed yet). After the GitOps change is pushed, ArgoCD moves them to `charts/ai-gateway` in
+  gateway-dev / gateway-prod; router-dev / router-prod are then empty: `make retire-router CONFIRM=1`.
+- Jenkins: job `router` still exists until `make up` (then `ai-gateway` is created; delete `router` in the UI).
+- The image `ai-gateway:local` is loaded in the kind nodes (used to verify the chart and drills); ns `drills` deleted.
+- Local Docker container `gw-redis-local` (Redis 8 on 127.0.0.1:6390) for `make gw-test` / `gw-qualify`.

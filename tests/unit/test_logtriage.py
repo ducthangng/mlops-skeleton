@@ -65,8 +65,8 @@ def test_slow_builds_needs_enough_history():
 
 
 def test_job_path_encodes_branches():
-    assert job_path("router", "main") == "/job/router/job/main"
-    assert job_path("router", "feat/cv-parity") == "/job/router/job/feat%252Fcv-parity"
+    assert job_path("ai-gateway", "main") == "/job/ai-gateway/job/main"
+    assert job_path("ai-gateway", "feat/cv-parity") == "/job/ai-gateway/job/feat%252Fcv-parity"
     assert job_path("qualify") == "/job/qualify"
 
 

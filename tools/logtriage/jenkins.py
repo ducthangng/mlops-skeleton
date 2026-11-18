@@ -16,7 +16,7 @@ class Build:
 
 
 def job_path(job: str, branch: str | None = None) -> str:
-    """job 'router', branch 'feat/x' -> '/job/router/job/feat%252Fx'.
+    """job 'ai-gateway', branch 'feat/x' -> '/job/ai-gateway/job/feat%252Fx'.
 
     Multibranch item names encode '/' as %2F, and the URL then encodes '%' again."""
     path = "".join(f"/job/{quote(part, safe='')}" for part in job.split("/"))

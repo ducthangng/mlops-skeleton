@@ -2,10 +2,11 @@
 # Idempotent bring-up of the local platform. Safe to re-run: every step first checks
 # what already exists and skips it. It never upgrades or reinstalls Jenkins.
 #
-#   cp .env.example .env   # fill GITHUB_USER / GITHUB_PAT once; scripts/lib.sh loads it
+#   cp .env.example .env   # fill GITHUB_USER / GITHUB_PAT (+ provider keys) once; scripts/lib.sh loads it
 #   make up
-# Env:
-#   GITHUB_USER / GITHUB_PAT  -> k8s Secrets for Kaniko push, GitOps bump, GHCR pull (optional)
+# Env (.env):
+#   GITHUB_USER / GITHUB_PAT  -> k8s Secrets for Kaniko push, GitOps bump, GHCR pull
+#   ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY -> Secret llm-providers (optional; mock otherwise)
 #   GITOPS_REPO_URL           -> repo ArgoCD syncs from (default: GitHub mlops-router-gitops)
 #   GITOPS_REVISION           -> branch ArgoCD follows (default: main)
 #   APP_REPO_URL / APP_BRANCH -> repo + branch the Jenkins jobs build (see scripts/jenkins-configure.sh)
@@ -23,7 +24,7 @@ step_tools() {
   for t in docker kind kubectl helm curl base64; do need "$t"; done
   docker info >/dev/null 2>&1 || die "Docker is not running (macOS: open -a Docker)"
   ok "docker, kind, kubectl, helm"
-  [[ -d $GITOPS_DIR/charts/router ]] || die "GitOps repo not found at $GITOPS_DIR (set GITOPS_DIR)"
+  [[ -d $GITOPS_DIR/charts/ai-gateway ]] || die "GitOps repo not found at $GITOPS_DIR (set GITOPS_DIR)"
 }
 
 step_cluster() {
@@ -77,7 +78,7 @@ heal_jenkins_init() {
 
 step_namespaces() {
   log "namespaces"
-  for ns in "${ENVS[@]/#/router-}"; do
+  for ns in "${ENVS[@]/#/gateway-}"; do
     k create namespace "$ns" --dry-run=client -o yaml | k apply -f - >/dev/null && ok "$ns"
   done
 }
@@ -102,23 +103,51 @@ step_secrets() {
     --from-file=username=<(printf %s "$GITHUB_USER") --from-file=password=<(printf %s "$GITHUB_PAT") \
     --dry-run=client -o yaml | k apply -f - >/dev/null
   ok "jenkins/github-pat (source for the Jenkins credentials)"
-  for ns in "${ENVS[@]/#/router-}"; do
+  for ns in "${ENVS[@]/#/gateway-}"; do
     k -n "$ns" create secret generic ghcr-pull --type=kubernetes.io/dockerconfigjson \
       --from-file=.dockerconfigjson=<(dockerconfig) --dry-run=client -o yaml | k apply -f - >/dev/null
     ok "$ns/ghcr-pull (only used if the GHCR package is private)"
   done
 }
 
-step_llm_secret() {
-  log "LLM provider key (UPSTREAM_API_KEY from .env -> Secret llm-upstream; chart reads it if set)"
-  if [[ -z ${UPSTREAM_API_KEY:-} ]]; then
-    skip "UPSTREAM_API_KEY not set in .env (gateway uses the mock LLM unless values-<env>.yaml sets a real baseUrl)"
+PROVIDER_KEYS=(ANTHROPIC_API_KEY OPENAI_API_KEY GEMINI_API_KEY)
+
+provider_env() {  # KEY=value lines for the provider keys that are set (read once per kubectl call)
+  local name
+  for name in "${PROVIDER_KEYS[@]}"; do
+    if [[ -n ${!name:-} ]]; then printf '%s=%s\n' "$name" "${!name}"; fi
+  done
+}
+
+step_llm_keys() {
+  log "LLM provider keys (.env -> Secret llm-providers; providers without a key are hidden in the UI)"
+  # UPSTREAM_API_KEY was the OpenAI key of the retired router service: still accepted.
+  if [[ -z ${OPENAI_API_KEY:-} && -n ${UPSTREAM_API_KEY:-} ]]; then OPENAI_API_KEY=$UPSTREAM_API_KEY; fi
+  local n ns
+  n=$(provider_env | grep -c . || true)
+  if ((n == 0)); then
+    skip "no provider key in .env: only the offline mock provider will be available"
     return 0
   fi
-  for ns in "${ENVS[@]/#/router-}"; do
-    k -n "$ns" create secret generic llm-upstream --from-file=api-key=<(printf %s "$UPSTREAM_API_KEY") \
+  for ns in "${ENVS[@]/#/gateway-}"; do
+    # Process substitution keeps the keys out of argv; a fresh one per call (it can be read only once).
+    # Re-created from .env every time, so a key removed from .env disappears from the cluster too.
+    k -n "$ns" create secret generic llm-providers --from-env-file=<(provider_env) \
       --dry-run=client -o yaml | k apply -f - >/dev/null
-    ok "$ns/llm-upstream"
+    ok "$ns/llm-providers ($n key(s))"
+  done
+}
+
+step_postgres_secret() {
+  log "Postgres password (random, created once per namespace, never in Git)"
+  local ns
+  for ns in "${ENVS[@]/#/gateway-}"; do
+    if k -n "$ns" get secret postgres-auth >/dev/null 2>&1; then
+      skip "$ns/postgres-auth exists (never rotated here: the database already uses it)"
+    else
+      k -n "$ns" create secret generic postgres-auth --from-file=password=<(openssl rand -hex 24 | tr -d '\n') >/dev/null
+      ok "$ns/postgres-auth"
+    fi
   done
 }
 
@@ -136,11 +165,13 @@ step_apps() {
   for env in "${ENVS[@]}"; do
     sed -e "s|repoURL: .*|repoURL: $GITOPS_REPO_URL|" -e "s|targetRevision: .*|targetRevision: $GITOPS_REVISION|" \
       "$GITOPS_DIR/argocd/gw-$env.yaml" | k apply -f - >/dev/null
-    ok "gw-$env -> router-$env"
+    ok "gw-$env -> gateway-$env"
   done
-  if k -n argocd get application gw >/dev/null 2>&1; then
-    warn "legacy app 'gw' (ns default) still exists. Retire it with: make retire-gw"
-  fi
+  for ns in router-dev router-prod; do
+    if k get namespace "$ns" >/dev/null 2>&1; then
+      warn "namespace $ns is left from the retired router service: make retire-router CONFIRM=1"
+    fi
+  done
 }
 
 summary() {
@@ -154,12 +185,8 @@ $(log "ready")
            user admin / ${argo_pw:-<argocd-initial-admin-secret not found>}
   Jenkins  http://localhost:8081    kubectl --context $CTX -n jenkins port-forward svc/jenkins 8081:8080
            user admin / ${jenkins_pw:-<not found>}
-  gw dev   http://localhost:8000    kubectl --context $CTX -n router-dev port-forward svc/gw-router 8000:80
-  gw prod  http://localhost:8002    kubectl --context $CTX -n router-prod port-forward svc/gw-router 8002:80
-  (port-forward tunnels to ONE pod, not the Service: lesson 1)
-
-  curl -s localhost:8000/v1/chat/completions -H 'content-type: application/json' -H 'X-API-Key: demo' \\
-       -d '{"messages":[{"role":"user","content":"why does my go program deadlock"}]}' -D - -o /dev/null
+  gateway  http://localhost:8090    make app            (dev; APP_ENV=prod APP_PORT=8091 make app for prod)
+  all three at once: make ui      (port-forward tunnels to ONE pod, not the Service: lesson 1)
 EOF
 }
 
@@ -171,7 +198,8 @@ main() {
   step_jenkins
   step_namespaces
   step_secrets
-  step_llm_secret
+  step_postgres_secret
+  step_llm_keys
   step_jenkins_config
   step_apps
   summary

@@ -1,8 +1,0 @@
-# Only app/, mock_llm/, routes.yaml, pyproject.toml and uv.lock are needed in the build context.
-*
-!app/
-!mock_llm/
-!routes.yaml
-!pyproject.toml
-!uv.lock
-**/__pycache__

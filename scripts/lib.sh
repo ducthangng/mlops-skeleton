@@ -15,6 +15,7 @@ if [[ -f $ROOT/.env ]]; then
 fi
 
 GITOPS_DIR=${GITOPS_DIR:-$ROOT/../mlops-gitops}
+APP_DIR=${APP_DIR:-$ROOT/../custom-ai-gateway}     # product repo (gateway/ + web/)
 CLUSTER=${CLUSTER:-mlops}
 CTX="kind-$CLUSTER"
 
