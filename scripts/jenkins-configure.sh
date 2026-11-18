@@ -68,7 +68,7 @@ upsert_credential() {  # id description username password
 sync_credentials() {
   log "credentials (from k8s Secret jenkins/github-pat)"
   if ! k -n jenkins get secret github-pat >/dev/null 2>&1; then
-    skip "secret jenkins/github-pat missing (set GITHUB_USER/GITHUB_PAT and re-run make up)"
+    skip "secret jenkins/github-pat missing (fill GITHUB_USER/GITHUB_PAT in .env and re-run make up)"
     return 0
   fi
   local user pat

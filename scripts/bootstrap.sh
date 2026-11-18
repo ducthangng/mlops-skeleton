@@ -2,8 +2,8 @@
 # Idempotent bring-up of the local platform. Safe to re-run: every step first checks
 # what already exists and skips it. It never upgrades or reinstalls Jenkins.
 #
-#   GITHUB_USER=... GITHUB_PAT=... scripts/bootstrap.sh
-#
+#   cp .env.example .env   # fill GITHUB_USER / GITHUB_PAT once; scripts/lib.sh loads it
+#   make up
 # Env:
 #   GITHUB_USER / GITHUB_PAT  -> k8s Secrets for Kaniko push, GitOps bump, GHCR pull (optional)
 #   GITOPS_REPO_URL           -> repo ArgoCD syncs from (default: GitHub mlops-router-gitops)
@@ -89,9 +89,9 @@ dockerconfig() {
 }
 
 step_secrets() {
-  log "secrets (from env GITHUB_USER / GITHUB_PAT, never from Git)"
+  log "secrets (GITHUB_USER / GITHUB_PAT from .env, never from Git)"
   if [[ -z ${GITHUB_USER:-} || -z ${GITHUB_PAT:-} ]]; then
-    warn "GITHUB_USER/GITHUB_PAT not set: skipping. Without them Kaniko cannot push and CI cannot bump GitOps."
+    warn "GITHUB_USER/GITHUB_PAT not set in .env: skipping. Without them Kaniko cannot push and CI cannot bump GitOps."
     return 0
   fi
   # Process substitution keeps the token out of argv (ps) and out of shell history.

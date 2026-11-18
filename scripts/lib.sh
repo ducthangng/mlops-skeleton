@@ -2,6 +2,18 @@
 # shellcheck shell=bash
 
 ROOT=${ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+# Local settings and secrets live in $ROOT/.env (gitignored; template: .env.example).
+# Values already set in the environment win over the file.
+if [[ -f $ROOT/.env ]]; then
+  while IFS="=" read -r _k _v || [[ -n $_k ]]; do
+    [[ $_k =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue          # skip comments / blank lines
+    [[ -n ${!_k:-} ]] && continue
+    _v=${_v%$'\r'}; _v=${_v#[\"\']}; _v=${_v%[\"\']}
+    export "$_k=$_v"
+  done < "$ROOT/.env"
+  unset _k _v
+fi
+
 GITOPS_DIR=${GITOPS_DIR:-$ROOT/../mlops-gitops}
 CLUSTER=${CLUSTER:-mlops}
 CTX="kind-$CLUSTER"

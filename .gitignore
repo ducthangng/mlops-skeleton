@@ -17,3 +17,6 @@ reports/
 coverage.xml
 .execution.md.swp
 .drills/
+
+# Local secrets (scripts/lib.sh loads it)
+.env

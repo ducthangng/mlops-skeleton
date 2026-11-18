@@ -154,7 +154,8 @@ What this means for this workload: almost all of the saving comes from the exact
 ## Runbook
 
 ```bash
-GITHUB_USER=... GITHUB_PAT=... make up   # idempotent: cluster, ArgoCD, Jenkins (never upgraded), secrets, JCasC, jobs, apps
+cp .env.example .env    # once: fill GITHUB_USER / GITHUB_PAT (gitignored)
+make up                 # idempotent: cluster, ArgoCD, Jenkins (never upgraded), secrets, JCasC, jobs, apps
 make status                              # nodes, apps, pods
 make passwords                           # ArgoCD + Jenkins admin
 make promote                             # dev tag -> values-prod.yaml as a commit in the GitOps repo (review, push)
