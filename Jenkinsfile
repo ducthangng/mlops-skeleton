@@ -28,7 +28,7 @@ spec:
       command: ["/busybox/cat"]
       tty: true
       resources:
-        requests: { cpu: 500m, memory: 256Mi }
+        requests: { cpu: 500m, memory: 128Mi }    # must be <= the limit, or the API server rejects the pod
         limits:   { memory: ${kanikoMemory} }
       volumeMounts:
         - { name: docker-config, mountPath: /kaniko/.docker }
