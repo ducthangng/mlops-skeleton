@@ -120,6 +120,7 @@ upsert_job() {  # name xml
 
 apply_jobs() {
   log "jobs ($APP_REPO_URL, qualify on $APP_BRANCH)"
+  k apply -f "$JENKINS_DIR/qualify-cache-pvc.yaml" >/dev/null && ok "pvc jenkins/qualify-cache (qualify stage cache)"
   local cred="" xml
   credential_exists github-pat && cred=github-pat
   [[ -n $cred ]] || warn "no github-pat credential: jobs clone anonymously (fine for a public repo / local git daemon)"

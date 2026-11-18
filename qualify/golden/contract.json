@@ -1,0 +1,10 @@
+{
+  "stage": "contract",
+  "metrics": {
+    "paths": 4,
+    "breaking_changes": 0
+  },
+  "failures": [],
+  "evidence": {},
+  "compare": {}
+}

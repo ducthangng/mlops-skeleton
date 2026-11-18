@@ -1,0 +1,10 @@
+{
+  "stage": "config_lint",
+  "metrics": {
+    "routes": 3,
+    "errors": 0
+  },
+  "failures": [],
+  "evidence": {},
+  "compare": {}
+}

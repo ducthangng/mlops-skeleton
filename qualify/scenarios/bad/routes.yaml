@@ -1,0 +1,133 @@
+# SCENARIO bad: broken config (unquoted null keyword, regex that does not compile)
+# Routing config. The sha256 of this file is the config version: it is part of every
+# cache key, so editing this file invalidates old cache entries automatically.
+#
+# RuleClassifier (default, CLASSIFIER=rules):
+#   score(route) = number of distinct keywords + patterns that match the prompt
+#   (keywords: case-insensitive whole words/phrases; patterns: regex, case-sensitive).
+#   Highest score wins; ties go to the route listed first. score < min_score -> default.
+# MiniLMClassifier (optional, CLASSIFIER=minilm): max cosine similarity vs utterances,
+#   below `threshold` -> default. Utterances are also the "training" examples that
+#   tests/unit/test_routes_config.py checks for eval leakage.
+#
+# Rules were written from the utterances and evals/dev.jsonl only; evals/test.jsonl is held out.
+min_score: 1
+threshold: 0.40
+default:
+  target: { model: small-chat, temperature: 0.7, max_tokens: 512 }
+routes:
+  - name: code
+    target: { model: coder, fallback: small-chat, temperature: 0.2, max_tokens: 1024 }
+    keywords: [
+      python, golang, go program, goroutine, rust, typescript, javascript, nodejs, node, react, java,
+      sql, css, tailwind, flexbox, html, json, csv, yaml, regex, api, fastapi, django, flask, pandas,
+      numpy, docker, kubectl, kubernetes, nginx, redis, git, commit, merge, rebase, stash, npm, pip,
+      uv, vitest, pytest, compile, compiler, stack trace, function, struct, class, variable, module,
+      bug, debug, debugging, deadlock, memory leak, pointer, null, segfault, syntax, exception,
+      middleware, cors, ssl, http, endpoint, script, code, deepcopy, borrow checker, lifetime,
+      requirements.txt, systemctl, logs, ttl, mock, useeffect, decimal places, format float
+    ]
+    patterns:
+      - '\b\w+(Error|Exception\b'             # SCENARIO bad: unbalanced parenthesis
+      - '(?i)\b(panic|fatal|segmentation fault):'
+      - '\bexit(ed)? (with )?code \d+'
+      - '[\w/@-]+\.(py|go|ts|js|rs|java|c|cpp|txt|ya?ml|json)\b'
+      - "'@?[\\w-]+/[\\w/-]+'"                 # module paths like '@components/Button'
+      - '\b[A-Z][A-Z_]{4,}\b'                  # CONSTANT_STYLE error codes (ENOSPC, CERTIFICATE_VERIFY_FAILED)
+    utterances:
+      - "write a python function to parse json"
+      - "why does my go program deadlock"
+      - "fix this typescript type error"
+      - "explain this stack trace"
+      - "TypeError: Cannot read property 'map' of undefined"
+      - "NullPointerException at line 42"
+      - "SyntaxError: unexpected token"
+      - "panic: runtime error: index out of range"
+      - "Segmentation fault (core dumped)"
+      - "CORS error on POST request localhost:3000"
+      - "git push rejected non-fast-forward"
+      - "docker container exits immediately with code 137"
+      - "regex to extract phone numbers"
+      - "convert json string to struct in Go"
+      - "Rust lifetime error borrow checker"
+      - "SQL query to select duplicate rows"
+      - "center div flexbox"
+      - "fix memory leak in C pointer"
+      - "python list comprehension syntax"
+      - "Fatal error: Allowed memory size exhausted"
+
+  - name: math
+    target: { model: reasoner, fallback: small-chat, temperature: 0.0, max_tokens: 2048 }
+    keywords: [
+      solve, equation, integral, integrate, integration, derivative, differentiate, limit, prove,
+      proof, induction, theorem, probability, chance, dice, coin, matrix, determinant, eigenvalue,
+      eigenvalues, eigenvectors, vector, vectors, cross product, standard deviation, variance, mean,
+      median, series, converge, diverge, taylor, sum of, area, volume, radius, angle, angles,
+      degrees, radians, triangle, hexagon, polygon, sphere, prime, factorial, combinations,
+      permutations, arrange, log, log2, logarithm, sqrt, square root, percent, fraction, simplify,
+      roots, remainder, divided, calculate, compute, formula, irrational, bayes, bayesian, extrema,
+      sin, cos, tan, arctan, ln, pi, x
+    ]
+    patterns:
+      - '\d+\s*[-+*/^%]\s*\d+'                 # 2 + 2, 7^100, 15%...
+      - '\b\d*[a-z]\s*\^\s*\(?\d'              # x^2, e^(3x)
+      - '\b[a-z]\s*[=<>]\s*[-\d]'              # x = 5
+      - '\b(sin|cos|tan|ln|log)\s*\('          # sin(x)
+      - '\d+%'
+      - '\[\[.*\]\]'                           # [[2, 5], [1, 3]] matrices
+    utterances:
+      - "solve this integral"
+      - "prove that sqrt 2 is irrational"
+      - "what is the derivative of x^2 sin x"
+      - "probability that two dice sum to 7"
+      - "find the inverse of a 3x3 matrix"
+      - "calculate the limit as x approaches infinity of (1 + 1/x)^x"
+      - "solve the differential equation dy/dx + y = e^x"
+      - "find the eigenvalues and eigenvectors of this matrix"
+      - "how many ways can you arrange 5 books on a shelf"
+      - "calculate the standard deviation of this dataset: [4, 8, 6, 5, 3]"
+      - "prove by induction that the sum of first n integers is n(n+1)/2"
+      - "find the area enclosed between y = x^2 and y = 2x"
+      - "solve for x in 2^(2x) - 5(2^x) + 4 = 0"
+      - "what is the Bayesian probability given these prior conditional probabilities"
+      - "calculate the cross product of vectors A = (1, 2, 3) and B = (4, 5, 6)"
+      - "find the local extrema for f(x) = x^3 - 3x^2 + 2"
+      - "what is the remainder when 7^100 is divided by 5"
+      - "compute the Taylor series expansion of cos(x) around x = 0"
+      - "solve the system of linear equations using Gaussian elimination"
+      - "determine if the infinite series sum 1/n^2 converges or diverges"
+
+  - name: chitchat
+    target: { model: small-chat, temperature: 0.9, max_tokens: 256 }
+    keywords: [
+      hi, hello, hey, "what's up", how are you, good morning, good night, good evening, bye,
+      see you, talk to you, speak to you, thanks, thank you, joke, riddle, fun, funny, fact,
+      favorite, favourite, movie, music, book, song, sing, hobby, hobbies, weekend, birthday,
+      feeling, feel, tired, bored, sad, happy, bad day, nickname, opinion, think about, you,
+      yourself, are you, who made you, recommend, eat, lunch, dinner, ice cream, coffee, tea,
+      travel, weather, cats, dogs, surprise me, cheer me up, encouraging
+    ]
+    patterns:
+      - '(?i)^(hi|hey|hello|yo)\b'
+      - '!\s*$'
+    utterances:
+      - "hi how are you"
+      - "tell me a joke"
+      - "what's your favorite movie"
+      - "good morning, hope you're having a great day"
+      - "do you prefer tea or coffee"
+      - "what kind of music do you like to listen to"
+      - "what's your opinion on sci-fi movies"
+      - "I'm feeling a bit tired today, how's your day going"
+      - "who is your favorite fictional character"
+      - "are you an early bird or a night owl"
+      - "tell me something interesting about yourself"
+      - "what should I eat for dinner tonight"
+      - "happy weekend! any fun plans?"
+      - "give me a random fun fact to cheer me up"
+      - "what's your favorite book of all time"
+      - "if you could travel anywhere, where would you go"
+      - "say something encouraging to start my morning"
+      - "what's a good hobby to pick up on weekends"
+      - "are you real or just an AI bot"
+      - "bye, talk to you later!"

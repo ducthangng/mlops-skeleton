@@ -1,0 +1,75 @@
+// Release qualification of a gateway release candidate against the committed golden baseline.
+// One Jenkins stage per qualify stage, cheapest first; the first failure stops the run (fail fast).
+// Stages whose inputs did not change are skipped via a cache key (PVC qualify-cache).
+// post: logtriage reports ONLY new failures / regressed metrics vs golden, with evidence.
+
+def podYaml() {
+  return '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: python
+      image: python:3.12-slim
+      command: ["sh", "-c", "trap 'exit 0' TERM; sleep infinity & wait"]
+      resources:
+        requests: { cpu: "1", memory: 512Mi }
+        limits:   { memory: 1536Mi }
+      volumeMounts:
+        - { name: qualify-cache, mountPath: /cache }
+    - name: redis
+      image: redis:8.10.3-alpine
+      args: ["--save", "", "--maxmemory", "64mb"]
+      resources:
+        requests: { cpu: 100m, memory: 32Mi }
+        limits:   { memory: 128Mi }
+  volumes:
+    - name: qualify-cache
+      persistentVolumeClaim: { claimName: qualify-cache }
+'''
+}
+
+def qualify(String stage) {
+  sh "uv run python -m qualify.run --stage ${stage} --scenario ${params.SCENARIO} --out reports/qualify --cache-dir /cache"
+}
+
+pipeline {
+  agent {
+    kubernetes {
+      yaml podYaml()
+      defaultContainer 'python'
+    }
+  }
+  parameters {
+    choice(name: 'SCENARIO', choices: ['clean', 'bad', 'partial'],
+           description: 'clean = candidate as-is; bad = broken config; partial = routing regression')
+  }
+  triggers { pollSCM('H/2 * * * *') }
+  options {
+    timeout(time: 20, unit: 'MINUTES')
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    disableConcurrentBuilds()
+  }
+  environment {
+    REDIS_URL = 'redis://localhost:6379/0'
+    LOAD_SECONDS = '30'
+    UV_LINK_MODE = 'copy'
+  }
+  stages {
+    stage('Setup')       { steps { sh 'pip install --quiet uv==0.11.28 && uv sync --frozen && rm -rf reports/qualify' } }
+    stage('config_lint') { steps { qualify('config_lint') } }
+    stage('contract')    { steps { qualify('contract') } }
+    stage('routing')     { steps { qualify('routing') } }
+    stage('cache')       { steps { qualify('cache') } }
+    stage('load')        { steps { qualify('load') } }
+  }
+  post {
+    always {
+      sh '''
+        uv run python -m tools.logtriage qualify-diff --run reports/qualify --golden qualify/golden \
+          --out reports/qualify --no-fail || true
+      '''
+      archiveArtifacts artifacts: 'reports/qualify/**', allowEmptyArchive: true
+    }
+  }
+}

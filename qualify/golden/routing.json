@@ -1,0 +1,18 @@
+{
+  "stage": "routing",
+  "metrics": {
+    "accuracy": 0.97,
+    "changed": 0,
+    "improved": 0
+  },
+  "failures": [],
+  "evidence": {
+    "accuracy": "accuracy 97.0% on 100 fixed prompts"
+  },
+  "compare": {
+    "accuracy": {
+      "better": "higher",
+      "abs": 0.02
+    }
+  }
+}

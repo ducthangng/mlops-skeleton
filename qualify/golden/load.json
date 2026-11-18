@@ -1,0 +1,39 @@
+{
+  "stage": "load",
+  "metrics": {
+    "requests": 3016,
+    "rps": 100.5,
+    "p50_ms": 6.25,
+    "p95_ms": 17.7,
+    "mean_ms": 9.5,
+    "error_rate": 0.0,
+    "rate_429_noisy": 0.8924,
+    "rate_429_others": 0.0
+  },
+  "failures": [],
+  "evidence": {
+    "p95_ms": "p95_ms=17.7 (3016 requests, offered 100 rps, 30s)",
+    "error_rate": "error_rate=0.0 (3016 requests, offered 100 rps, 30s)",
+    "rate_429_noisy": "rate_429_noisy=0.8924 (3016 requests, offered 100 rps, 30s)",
+    "rate_429_others": "rate_429_others=0.0 (3016 requests, offered 100 rps, 30s)"
+  },
+  "compare": {
+    "p95_ms": {
+      "better": "lower",
+      "rel": 1.0,
+      "abs": 25
+    },
+    "error_rate": {
+      "better": "lower",
+      "abs": 0.01
+    },
+    "rate_429_others": {
+      "better": "lower",
+      "abs": 0.02
+    },
+    "rate_429_noisy": {
+      "better": "higher",
+      "abs": 0.2
+    }
+  }
+}
