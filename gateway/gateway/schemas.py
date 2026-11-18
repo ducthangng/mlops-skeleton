@@ -54,6 +54,7 @@ class CatalogOut(BaseModel):
     models: list[ModelOut]
     cache_enabled: bool
     router_enabled: bool
+    router_name: str
 
 
 class ConversationSummary(BaseModel):
@@ -76,6 +77,7 @@ class MessageMeta(BaseModel):
     output_tokens: int | None
     ttft_ms: float | None
     latency_ms: float | None
+    steps: list[dict] | None = None
 
 
 class MessageOut(BaseModel):

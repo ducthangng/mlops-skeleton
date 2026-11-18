@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, Integer, String, Text, Uuid, func
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, Integer, String, Text, Uuid, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -77,6 +77,7 @@ class RequestLog(Base):
     output_tokens: Mapped[int | None] = mapped_column(Integer)
     ttft_ms: Mapped[float | None] = mapped_column(Float)
     latency_ms: Mapped[float | None] = mapped_column(Float)
+    steps: Mapped[list | None] = mapped_column(JSONType)  # pipeline steps, rendered as the UI stepper
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (Index("ix_requests_created", "created_at"),)
@@ -102,7 +103,14 @@ def make_sessionmaker(engine: AsyncEngine) -> async_sessionmaker:
     return async_sessionmaker(engine, expire_on_commit=False)
 
 
+# Columns added after the first release. create_all() doesn't alter existing tables, so add them here.
+# Replace with Alembic migrations once the schema changes more often.
+ADDITIVE_COLUMNS = ["ALTER TABLE requests ADD COLUMN IF NOT EXISTS steps JSONB"]
+
+
 async def create_schema(engine: AsyncEngine) -> None:
-    # Fine for a skeleton. Switch to Alembic migrations before the schema needs to change in prod.
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        if engine.dialect.name == "postgresql":
+            for ddl in ADDITIVE_COLUMNS:
+                await conn.execute(text(ddl))

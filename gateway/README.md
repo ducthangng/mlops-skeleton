@@ -2,20 +2,24 @@
 
 A middleman between a chat UI and LLM providers. For every prompt it:
 
-1. **Routes**: asks the router plugin which model should answer. If there's no router, or it returns nothing, fails, or is too slow, it uses the model you picked in the UI.
-2. **Checks the cache**: asks the KV cache plugin for an exact-match answer. On a hit, the answer comes back without calling a provider.
+1. **Checks the cache**: asks the KV cache plugin for an exact-match answer. On a hit, the answer comes back without calling the router or a provider.
+2. **Asks the router ("JJ")** which model, thinking level, max output tokens and sampling to use. If there's no router, or it returns nothing, fails, or is too slow, it uses the settings from the UI.
 3. **Calls the provider** (Anthropic, OpenAI or any OpenAI-compatible server, Gemini, or an offline mock) and streams the answer to the UI.
-4. **Records** the conversation and one request-log row (routing decision, cache result, latency, tokens) in **Postgres**.
+4. **Records** the conversation and one request-log row (routing decision, cache result, latency, tokens, pipeline steps) in **Postgres**.
 
 ```
 UI (web/) ──SSE──▶ POST /api/chat
                      │
-                     ├─ router plugin  ──▶ RouteDecision | None   (None = use the user's pick)
-                     ├─ cache plugin   ──▶ hit? stream it, done
+                     ├─ cache plugin   ──▶ hit? stream it, done (router skipped)
+                     ├─ router plugin  ──▶ RouteDecision | None   (None = use the UI settings)
                      ├─ provider SDK   ──▶ stream text + thinking
-                     ├─ Postgres       ◀── conversation, messages, request log
-                     └─ cache plugin   ◀── store complete answers
+                     ├─ cache plugin   ◀── store complete answers
+                     └─ Postgres       ◀── conversation, messages, request log + steps
 ```
+
+Each stage is streamed to the UI as a `step` event. In **Auto by JJ** mode the right-hand panel shows only these steps, as a vertical stepper (Check cache, Ask JJ, Model, Thinking level, Max output tokens, Temperature · Top P, Generate answer, Save). Every resolved value is labelled with who chose it: **by JJ**, **by you**, **model default** or **from cache**. Steps are stored with the request, so "Show steps" on any earlier answer replays them.
+
+**Auto by JJ** hands the model, thinking level, max output tokens and sampling to JJ. If JJ can't decide, the gateway uses the values last set in Manual mode. **Manual** skips JJ, and the right-hand panel shows the Run settings instead of the stepper. Auto and Manual requests use separate cache entries. The router's display name comes from `GATEWAY_ROUTER_NAME` (default `JJ`) or a `display_name` attribute on your router class.
 
 The router and the cache are both **fail-open**: an error, a timeout or a bad answer from either one never breaks a chat.
 
@@ -86,7 +90,7 @@ In the UI, **Routing: Manual** skips the router for that chat.
 
 | Method | Path | |
 |---|---|---|
-| POST | `/api/chat` | Server-Sent Events: `meta`, `thinking`*, `text`*, then `done` or `error` |
+| POST | `/api/chat` | Server-Sent Events: `meta` (ids + step list), `step`*, `model`, `thinking`*, `text`*, then `done` or `error` |
 | GET | `/api/catalog` | providers (with `configured`) and models |
 | GET/PUT | `/api/settings` | the user's default run settings (model, level, routing, ...) |
 | GET | `/api/conversations` · `/api/conversations/{id}` | chat history |
@@ -101,10 +105,10 @@ Interactive docs are at `/docs`.
 |---|---|
 | `conversations` | title, last-used run settings |
 | `messages` | user and assistant turns, with thinking text and errors |
-| `requests` | one row per call: requested vs. actual model, routed_by, cache status, status, tokens, TTFT, latency |
+| `requests` | one row per call: requested vs. actual model, routed_by, cache status, status, tokens, TTFT, latency, pipeline `steps` |
 | `app_settings` | the default run settings |
 
-Tables are created on startup (`create_all`). Add Alembic before you change the schema on a database that holds data you want to keep.
+Tables are created on startup (`create_all`), and later columns are added by the `ADDITIVE_COLUMNS` list in [db.py](gateway/db.py) (for example `requests.steps`). Switch to Alembic once the schema changes more often.
 
 ## Tests
 

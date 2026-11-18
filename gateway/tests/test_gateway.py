@@ -9,6 +9,19 @@ def text_of(events):
     return "".join(d["text"] for e, d in events if e == "text")
 
 
+def model_of(events):
+    return next(d for e, d in events if e == "model")
+
+
+def steps_of(events):
+    """Final state of every step, by id."""
+    out = {s["id"]: s for s in next(d for e, d in events if e == "meta")["steps"]}
+    for e, d in events:
+        if e == "step":
+            out[d["id"]] = d
+    return out
+
+
 def test_catalog_marks_unconfigured_providers(client):
     cat = client.get("/api/catalog").json()
     by_name = {p["name"]: p for p in cat["providers"]}
@@ -36,7 +49,7 @@ def test_chat_streams_and_persists(client):
     names = [e for e, _ in events]
     assert names[0] == "meta" and names[-1] == "done"
     meta, done = events[0][1], events[-1][1]
-    assert meta["routed_by"] == "user"
+    assert model_of(events)["routed_by"] == "user"
     assert "hello there" in text_of(events)
     assert done["status"] == "ok" and done["cache_status"] == "bypass"
 
@@ -44,6 +57,7 @@ def test_chat_streams_and_persists(client):
     conv = client.get(f"/api/conversations/{cid}").json()
     assert [m["role"] for m in conv["messages"]] == ["user", "assistant"]
     assert conv["messages"][1]["meta"]["model"] == "echo"
+    assert conv["messages"][1]["meta"]["steps"][0]["id"] == "cache"
     assert conv["settings"]["routing"] == "manual"
 
     # second turn sees the history
@@ -71,6 +85,11 @@ def test_cache_hit_on_identical_request(make_client):
         second = run_chat(client, "cache me")  # new conversation, same prompt + params
         assert first[-1][1]["cache_status"] == "miss"
         assert second[-1][1]["cache_status"] == "hit"
+        st = steps_of(second)
+        assert st["cache"]["value"] == "Hit"
+        assert st["router"]["status"] == "stopped" and st["generate"]["status"] == "stopped"
+        assert st["model"]["source"] == "cache" and st["save"]["status"] == "success"
+        assert steps_of(first)["generate"]["status"] == "success"
         assert text_of(first) == text_of(second)
         # different params -> different key
         third = run_chat(client, "cache me", temperature=0.1)
@@ -85,26 +104,35 @@ def test_cache_hit_on_identical_request(make_client):
 def test_router_overrides_and_fallbacks(make_client):
     with make_client(router_class="tests.plugins:PickEchoHigh") as client:
         ev = run_chat(client, "route me", level="low")
-        assert ev[0][1]["routed_by"] == "router"
-        assert ev[0][1]["params"]["level"] == "high"
-        assert ev[0][1]["route_reason"] == "test rule"
+        m = model_of(ev)
+        assert m["routed_by"] == "router"
+        assert m["params"]["level"] == "high"
+        assert m["route_reason"] == "test rule"
+        st = steps_of(ev)
+        assert st["router"]["status"] == "success" and st["router"]["label"] == "Ask JJ"
+        assert st["level"]["value"] == "high" and st["level"]["source"] == "router"
+        assert st["max_tokens"]["source"] == "model default"
         assert plugins.CALLS[-1].requested.model == "echo"
 
-        for prompt, reason in [
-            ("keep", "router kept your selection"),
-            ("bogus", "router picked unavailable mock/does-not-exist, used your selection"),
-            ("boom", "router failed (RuntimeError), used your selection"),
-            ("slow", "router timed out, used your selection"),
+        for prompt, reason, status in [
+            ("keep", "JJ kept your settings", "success"),
+            ("bogus", "JJ picked unavailable mock/does-not-exist: your settings", "warning"),
+            ("boom", "JJ failed (RuntimeError): your settings", "warning"),
+            ("slow", "JJ timed out: your settings", "warning"),
         ]:
-            meta = run_chat(client, prompt, level="low")[0][1]
-            assert meta["routed_by"] == "user", prompt
-            assert meta["route_reason"] == reason
-            assert meta["params"]["level"] == "low"
+            ev = run_chat(client, prompt, level="low")
+            m = model_of(ev)
+            assert m["routed_by"] == "user", prompt
+            assert m["route_reason"] == reason
+            assert m["params"]["level"] == "low"
+            assert steps_of(ev)["router"]["status"] == status
+            assert steps_of(ev)["level"]["source"] == "you"
 
         # manual mode skips the router entirely
         n = len(plugins.CALLS)
-        meta = run_chat(client, "route me", routing="manual")[0][1]
-        assert meta["routed_by"] == "user" and len(plugins.CALLS) == n
+        ev = run_chat(client, "route me", routing="manual")
+        assert model_of(ev)["routed_by"] == "user" and len(plugins.CALLS) == n
+        assert steps_of(ev)["router"]["status"] == "stopped"
 
 
 def test_fit_params_respects_model_capabilities():
@@ -128,3 +156,22 @@ def test_delete_conversation(client):
     assert client.delete(f"/api/conversations/{cid}").status_code == 204
     assert client.get(f"/api/conversations/{cid}").status_code == 404
     assert client.get("/api/requests").json()[0]["conversation_id"] is None
+
+
+def test_cache_hit_skips_router(make_client):
+    with make_client(cache_class="gateway.plugins.cache:MemoryCache",
+                     router_class="tests.plugins:PickEchoHigh") as client:
+        run_chat(client, "route me once")
+        n = len(plugins.CALLS)
+        ev = run_chat(client, "route me once")
+        assert ev[-1][1]["cache_status"] == "hit"
+        assert len(plugins.CALLS) == n  # router not called on a hit
+        assert model_of(ev)["routed_by"] == "router"  # the cached answer remembers who chose the model
+
+
+def test_every_step_is_resolved(client):
+    st = steps_of(run_chat(client, "hello"))
+    assert list(st) == ["cache", "router", "model", "level", "max_tokens", "sampling", "generate", "save"]
+    assert all(s["status"] != "pending" for s in st.values())
+    assert st["router"]["value"] == "Not connected"
+    assert st["cache"]["value"] == "Not connected"

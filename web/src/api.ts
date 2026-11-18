@@ -41,6 +41,18 @@ export interface Catalog {
   models: ModelInfo[];
   cache_enabled: boolean;
   router_enabled: boolean;
+  router_name: string;
+}
+
+/** One stage of a request, as tracked by gateway/gateway/pipeline.py. */
+export interface Step {
+  id: string;
+  label: string;
+  status: "pending" | "in-progress" | "success" | "warning" | "error" | "stopped";
+  value?: string;
+  detail?: string;
+  source?: string; // router | you | model default | cache
+  ms?: number;
 }
 
 export interface MessageMeta {
@@ -56,6 +68,7 @@ export interface MessageMeta {
   output_tokens: number | null;
   ttft_ms: number | null;
   latency_ms: number | null;
+  steps?: Step[] | null;
 }
 
 export interface ChatMessage {
@@ -145,6 +158,10 @@ export const api = {
 export interface MetaEvent {
   request_id: string;
   conversation_id: string;
+  steps: Step[];
+}
+
+export interface ModelEvent {
   provider: string;
   model: string;
   model_label: string;
@@ -167,6 +184,8 @@ export interface DoneEvent {
 
 export interface ChatHandlers {
   onMeta: (m: MetaEvent) => void;
+  onStep: (s: Step) => void;
+  onModel: (m: ModelEvent) => void;
   onText: (t: string) => void;
   onThinking: (t: string) => void;
   onDone: (d: DoneEvent) => void;
@@ -202,6 +221,8 @@ export async function streamChat(
       if (!data) continue;
       const payload = JSON.parse(data);
       if (event === "meta") h.onMeta(payload);
+      else if (event === "step") h.onStep(payload);
+      else if (event === "model") h.onModel(payload);
       else if (event === "text") h.onText(payload.text);
       else if (event === "thinking") h.onThinking(payload.text);
       else if (event === "done") h.onDone(payload);

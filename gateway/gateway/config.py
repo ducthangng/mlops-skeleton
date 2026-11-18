@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     cache_class: str | None = None
     router_class: str | None = None
 
+    # Name shown for the router in the UI. A router class can override it with a `display_name` attribute.
+    router_name: str = "JJ"
+
     cache_ttl_s: int = 3600
     cache_timeout_s: float = 0.05  # fail-open: a slow cache is treated as a miss
     router_timeout_s: float = 2.0  # fail-open: a slow router falls back to the user's choice

@@ -14,14 +14,18 @@ import StatusIndicator from "@cloudscape-design/components/status-indicator";
 import { colorBackgroundLayoutMain } from "@cloudscape-design/design-tokens";
 import { useEffect, useRef, useState } from "react";
 
-import { api, type Catalog, type ChatMessage, type MessageMeta, type RunSettings, streamChat } from "../api";
+import { api, type Catalog, type ChatMessage, type MessageMeta, type RunSettings, type Step, streamChat } from "../api";
 import { findModel } from "../settings";
 import Markdown from "./Markdown";
 import { ConfirmDelete, RenameModal } from "./Modals";
+import { type PipelineView, templateSteps } from "./PipelinePanel";
 
 interface UiMessage extends ChatMessage {
   streaming?: boolean;
+  steps?: Step[]; // live steps while streaming; saved ones are in meta.steps
 }
+
+const stepsOf = (m: UiMessage) => m.steps ?? m.meta?.steps ?? null;
 
 interface Props {
   catalog: Catalog | null;
@@ -31,6 +35,7 @@ interface Props {
   onConversationsChanged: () => void;
   onSettingsRestored: (saved: Partial<RunSettings>) => void;
   onError: (message: string) => void;
+  onPipeline: (view: PipelineView) => void;
 }
 
 const SUGGESTIONS = [
@@ -48,12 +53,14 @@ export default function ChatView(props: Props) {
   const [streaming, setStreaming] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const ownedId = useRef<string | null>(null); // conversation created by our own stream: don't reload it
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Load the conversation when the URL changes.
   useEffect(() => {
+    setSelectedId(null);
     if (conversationId === null) {
       ownedId.current = null;
       setMessages([]);
@@ -84,6 +91,18 @@ export default function ChatView(props: Props) {
     bottomRef.current?.scrollIntoView({ block: "end" });
   }, [messages]);
 
+  // Tell the left-hand stepper which request to show.
+  const routerName = catalog?.router_name ?? "JJ";
+  useEffect(() => {
+    const last = [...messages].reverse().find((m) => m.role === "assistant" && stepsOf(m));
+    const selected = selectedId ? messages.find((m) => m.id === selectedId && stepsOf(m)) : undefined;
+    if (streaming && last) props.onPipeline({ steps: stepsOf(last)!, mode: "live" });
+    else if (selected) props.onPipeline({ steps: stepsOf(selected)!, mode: "selected" });
+    else if (last) props.onPipeline({ steps: stepsOf(last)!, mode: "latest" });
+    else props.onPipeline({ steps: templateSteps(routerName), mode: "idle" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, selectedId, streaming, routerName]);
+
   const patchLast = (fn: (m: UiMessage) => UiMessage) =>
     setMessages((ms) => (ms.length ? [...ms.slice(0, -1), fn(ms[ms.length - 1])] : ms));
 
@@ -95,9 +114,13 @@ export default function ChatView(props: Props) {
     setMessages((ms) => [
       ...ms,
       { id: `u-${now}`, role: "user", content: prompt, thinking: null, error: null, created_at: now, meta: null },
-      { id: `a-${now}`, role: "assistant", content: "", thinking: null, error: null, created_at: now, meta: null, streaming: true },
+      {
+        id: `a-${now}`, role: "assistant", content: "", thinking: null, error: null, created_at: now, meta: null,
+        streaming: true, steps: templateSteps(routerName),
+      },
     ]);
     setStreaming(true);
+    setSelectedId(null);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     let meta: MessageMeta | null = null;
@@ -106,17 +129,22 @@ export default function ChatView(props: Props) {
         { conversation_id: conversationId, message: prompt, settings },
         {
           onMeta: (m) => {
+            patchLast((x) => ({ ...x, steps: m.steps }));
+            if (!conversationId) {
+              ownedId.current = m.conversation_id;
+              setTitle(prompt.split(/\s+/).join(" ").slice(0, 60));
+              props.onOpenConversation(m.conversation_id);
+            }
+          },
+          onStep: (step) =>
+            patchLast((x) => ({ ...x, steps: (x.steps ?? []).map((s) => (s.id === step.id ? step : s)) })),
+          onModel: (m) => {
             meta = {
               provider: m.provider, model: m.model, served_model: null, routed_by: m.routed_by,
               route_reason: m.route_reason, cache_status: "…", status: "streaming", stop_reason: null,
               input_tokens: null, output_tokens: null, ttft_ms: null, latency_ms: null,
             };
             patchLast((x) => ({ ...x, meta }));
-            if (!conversationId) {
-              ownedId.current = m.conversation_id;
-              setTitle(prompt.split(/\s+/).join(" ").slice(0, 60));
-              props.onOpenConversation(m.conversation_id);
-            }
           },
           onThinking: (t) => patchLast((x) => ({ ...x, thinking: (x.thinking ?? "") + t })),
           onText: (t) => patchLast((x) => ({ ...x, content: x.content + t })),
@@ -158,7 +186,13 @@ export default function ChatView(props: Props) {
       <div className="chat__header">
         <Header
           variant="h1"
-          description={model ? `${model.label} · routing ${settings?.routing === "auto" ? "auto" : "manual"}` : undefined}
+          description={
+            settings?.routing === "auto"
+              ? `Auto · ${routerName} chooses the model and settings`
+              : model
+                ? `Manual · ${model.label}`
+                : undefined
+          }
           actions={
             conversationId && (
               <ButtonDropdown
@@ -210,7 +244,13 @@ export default function ChatView(props: Props) {
                 <div className="bubble-text">{m.content}</div>
               </ChatBubble>
             ) : (
-              <AssistantBubble key={m.id} m={m} catalog={catalog} />
+              <AssistantBubble
+                key={m.id}
+                m={m}
+                catalog={catalog}
+                selected={selectedId === m.id}
+                onSelect={settings?.routing === "auto" && stepsOf(m) && !m.streaming ? () => setSelectedId(selectedId === m.id ? null : m.id) : undefined}
+              />
             ),
           )}
         </SpaceBetween>
@@ -273,7 +313,8 @@ export default function ChatView(props: Props) {
   );
 }
 
-function AssistantBubble({ m, catalog }: { m: UiMessage; catalog: Catalog | null }) {
+function AssistantBubble(props: { m: UiMessage; catalog: Catalog | null; selected: boolean; onSelect?: () => void }) {
+  const { m, catalog } = props;
   const label = m.meta ? findModel(catalog, m.meta)?.label ?? m.meta.model : "Assistant";
   const waiting = m.streaming && !m.content;
   return (
@@ -295,7 +336,7 @@ function AssistantBubble({ m, catalog }: { m: UiMessage; catalog: Catalog | null
       }
     >
       <SpaceBetween size="s">
-        {m.meta && <MetaLine meta={m.meta} label={label} />}
+        {m.meta && <MetaLine meta={m.meta} label={label} routerName={catalog?.router_name ?? "JJ"} selected={props.selected} onSelect={props.onSelect} />}
         {m.thinking && (
           <ExpandableSection headerText={m.streaming && !m.content ? "Thinking…" : "Thoughts"} variant="footer">
             <div className="thinking">
@@ -324,7 +365,8 @@ function AssistantBubble({ m, catalog }: { m: UiMessage; catalog: Catalog | null
   );
 }
 
-function MetaLine({ meta, label }: { meta: MessageMeta; label: string }) {
+function MetaLine(props: { meta: MessageMeta; label: string; routerName: string; selected: boolean; onSelect?: () => void }) {
+  const { meta, label } = props;
   const parts: string[] = [];
   if (meta.served_model && meta.served_model !== meta.model) parts.push(`served by ${meta.served_model}`);
   if (meta.cache_status === "hit") parts.push("cache hit");
@@ -334,10 +376,15 @@ function MetaLine({ meta, label }: { meta: MessageMeta; label: string }) {
   return (
     <div className="meta-line">
       <span className={meta.routed_by === "router" ? "chip chip--router" : "chip"} title={meta.route_reason ?? undefined}>
-        {meta.routed_by === "router" ? "Routed" : "Your pick"} · {label}
+        {meta.routed_by === "router" ? `${props.routerName}'s pick` : "Your pick"} · {label}
       </span>
       {meta.routed_by === "router" && meta.route_reason && <span className="meta-line__reason">{meta.route_reason}</span>}
       {parts.length > 0 && <span className="meta-line__stats">{parts.join(" · ")}</span>}
+      {props.onSelect && (
+        <button type="button" className="meta-line__steps" aria-pressed={props.selected} onClick={props.onSelect}>
+          {props.selected ? "Showing steps" : "Show steps"}
+        </button>
+      )}
     </div>
   );
 }

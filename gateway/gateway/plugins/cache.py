@@ -14,7 +14,7 @@ import time
 from collections import OrderedDict
 from typing import Protocol, runtime_checkable
 
-KEY_VERSION = "v1"  # bump to invalidate every entry when the key format changes
+KEY_VERSION = "v2"  # bump to invalidate every entry when the key format changes
 
 
 @runtime_checkable

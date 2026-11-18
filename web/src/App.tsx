@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { api, type Catalog, type ConversationSummary, type RunSettings } from "./api";
 import ChatView from "./components/ChatView";
+import { type PipelineView, templateSteps } from "./components/PipelinePanel";
 import RequestLog from "./components/RequestLog";
 import RunSettingsPanel from "./components/RunSettingsPanel";
 import { mergeSettings } from "./settings";
@@ -45,6 +46,9 @@ export default function App() {
   const [navOpen, setNavOpen] = useState(() => window.innerWidth >= 1000);
   const [toolsOpen, setToolsOpen] = useState(() => window.innerWidth >= 1200);
   const [saving, setSaving] = useState(false);
+  const [pipeline, setPipeline] = useState<PipelineView | null>(null);
+  // A chat's saved settings can arrive before the catalog/defaults; apply them once both are loaded.
+  const [restored, setRestored] = useState<Partial<RunSettings> | null>(null);
   const [flash, setFlash] = useState<FlashbarProps.MessageDefinition[]>([]);
 
   const notify = useCallback((type: FlashbarProps.Type, content: string) => {
@@ -70,6 +74,13 @@ export default function App() {
   }, [notify, refreshConversations]);
 
   const chatId = route.page === "chat" ? route.id : null;
+
+  useEffect(() => {
+    if (restored && defaults && catalog) {
+      setSettings(mergeSettings(defaults, restored, catalog));
+      setRestored(null);
+    }
+  }, [restored, defaults, catalog]);
 
   // A new chat starts from the saved defaults.
   useEffect(() => {
@@ -138,13 +149,14 @@ export default function App() {
         toolsOpen={toolsOpen}
         onToolsChange={({ detail }) => setToolsOpen(detail.open)}
         toolsWidth={360}
-        ariaLabels={{ tools: "Run settings", toolsToggle: "Open run settings", toolsClose: "Close run settings", navigation: "Chats" }}
+        ariaLabels={{ tools: "Run settings and pipeline", toolsToggle: "Open run settings", toolsClose: "Close run settings", navigation: "Chats" }}
         tools={
           <RunSettingsPanel
             catalog={catalog}
             value={settings}
             onChange={setSettings}
             saving={saving}
+            pipeline={pipeline ?? { steps: templateSteps(catalog?.router_name ?? "JJ"), mode: "idle" }}
             onResetDefault={() => defaults && setSettings(defaults)}
             onSaveDefault={async () => {
               if (!settings) return;
@@ -173,8 +185,9 @@ export default function App() {
                 conversationId={chatId}
                 onOpenConversation={(id) => go(id ? `#/chat/${id}` : "#/")}
                 onConversationsChanged={refreshConversations}
-                onSettingsRestored={(saved) => defaults && setSettings(mergeSettings(defaults, saved, catalog))}
+                onSettingsRestored={setRestored}
                 onError={(m) => notify("error", m)}
+                onPipeline={setPipeline}
               />
             </SpaceBetween>
           )

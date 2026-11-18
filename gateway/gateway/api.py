@@ -52,6 +52,7 @@ async def catalog(request: Request):
         ],
         cache_enabled=g.cache_enabled,
         router_enabled=g.router_enabled,
+        router_name=g.router_name,
     )
 
 
