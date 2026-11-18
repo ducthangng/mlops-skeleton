@@ -14,8 +14,10 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH" PYTHONUNBUFFERED=1
 COPY app/ app/
+COPY mock_llm/ mock_llm/
 COPY routes.yaml .
 RUN useradd -m appuser
 USER appuser
 EXPOSE 8000
+# Same image runs the mock LLM: command ["uvicorn", "mock_llm.main:app", ...]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
