@@ -1,7 +1,7 @@
 """Needs a real Redis (>= 8 for the vector-search tests). In Jenkins it is a sidecar container
-in the agent pod; locally: docker run -d -p 6379:6379 redis:8.10-alpine
+in the agent pod; locally: make test-integration (Redis 8 on :6390)
 
-  REDIS_URL=redis://localhost:6379/0 uv run pytest -m integration tests/integration
+  REDIS_URL=redis://localhost:6390/0 uv run pytest -m integration tests/integration
 """
 
 import asyncio

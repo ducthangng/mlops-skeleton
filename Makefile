@@ -35,7 +35,7 @@ promote:       ## copy the dev image tag to prod as a Git commit in the GitOps r
 	 echo "committed. Review with 'git -C $(GITOPS_DIR) show', then push. Rollback = git revert."
 
 # ---------- app ----------
-.PHONY: install test test-integration lint cov eval redis-up
+.PHONY: install test test-integration lint cov eval redis-up semantic-eval bench
 
 install:
 	uv sync
@@ -43,11 +43,11 @@ install:
 test:          ## unit + api tests (no Redis needed)
 	uv run pytest -q tests/unit tests/api
 
-redis-up:      ## local Redis 8 for integration tests / benchmarks
-	@docker ps --format '{{.Names}}' | grep -qx gw-redis || docker run -d --rm --name gw-redis -p 6379:6379 redis:8.10.3-alpine
+redis-up:      ## local Redis 8 on :6390 (not 6379: a host Redis there would shadow Docker's port)
+	@docker ps --format '{{.Names}}' | grep -qx gw-redis || docker run -d --rm --name gw-redis -p 6390:6379 redis:8.10.3-alpine
 
 test-integration: redis-up
-	REDIS_URL=redis://localhost:6379/0 uv run pytest -q -m integration tests/integration
+	REDIS_URL=redis://localhost:6390/0 uv run pytest -q -m integration tests/integration
 
 lint:
 	uv run ruff check .
@@ -55,11 +55,17 @@ lint:
 cov: redis-up  ## all tests with the CI coverage gate
 	rm -f .coverage
 	uv run pytest -q tests/unit tests/api --cov --cov-report=
-	REDIS_URL=redis://localhost:6379/0 uv run pytest -q -m integration tests/integration --cov --cov-append --cov-report=
+	REDIS_URL=redis://localhost:6390/0 uv run pytest -q -m integration tests/integration --cov --cov-append --cov-report=
 	uv run coverage report --fail-under=80
 
 eval:          ## routing accuracy on dev + held-out test, gate vs evals/baseline.json
 	uv run python -m evals.run --split dev --split test --gate evals/baseline.json --out reports/eval.json
+
+semantic-eval: ## tau table: paraphrase hit rate vs false-hit rate (evals/semantic_pairs.jsonl)
+	uv run python -m evals.semantic_eval --out reports/semantic_eval.json --md reports/semantic_eval.md
+
+bench:         ## replay benchmark: no-cache vs exact vs exact+semantic against the mock LLM
+	scripts/bench.sh
 
 # ---------- AI gateway UI prototype (gateway/ + web/) ----------
 .PHONY: gw-db gw-dev gw-web gw-test gw-build

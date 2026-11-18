@@ -44,7 +44,7 @@ class Settings:
     redis_timeout_s: float = field(default_factory=lambda: float(os.getenv("REDIS_TIMEOUT_S", "0.05")))
     cache_ttl_s: int = field(default_factory=lambda: int(os.getenv("CACHE_TTL", "3600")))
     semantic_enabled: bool = field(default_factory=lambda: _env_bool("SEMANTIC_CACHE_ENABLED", "true"))
-    semantic_threshold: float = field(default_factory=lambda: float(os.getenv("SEMANTIC_CACHE_THRESHOLD", "0.90")))
+    semantic_threshold: float = field(default_factory=lambda: float(os.getenv("SEMANTIC_CACHE_THRESHOLD", "0.95")))
     semantic_backend: str = field(default_factory=lambda: os.getenv("SEMANTIC_BACKEND", "auto"))
     semantic_max_entries: int = field(default_factory=lambda: int(os.getenv("SEMANTIC_MAX_ENTRIES", "500")))
     rate: float = field(default_factory=lambda: float(os.getenv("RATE_LIMIT_RATE", "5")))
