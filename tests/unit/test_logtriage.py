@@ -28,6 +28,8 @@ SAMPLES = Path("tools/logtriage/samples")
     ("real_test_drill01.log", "test", "FAILED tests/unit/test_classifier.py::test_tie_goes_to_first_route"),
     ("real_lint_drill02.log", "lint", "app/cache.py:1:1"),
     ("real_oom_drill11.log", "oom", "OOMKilled"),
+    # real: qualify SCENARIO=partial; the log also contains normal "Pod [Pending]" startup lines
+    ("real_qualify_partial.log", "test", "[routing] fail"),
 ])
 def test_classify_samples(name, category, needle):
     t = classify((SAMPLES / name).read_text())

@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 from typing import Annotated
 
+import httpx
 import typer
 
 from tools.logtriage.classify import classify
@@ -63,7 +64,12 @@ def jenkins(
     """Fetch the last N builds of a job, classify failures, flag slow builds."""
     branch = branch or None
     j = Jenkins(url, user, password or None)
-    builds = j.builds(job, branch, last)
+    try:
+        builds = j.builds(job, branch, last)
+    except httpx.HTTPStatusError as e:
+        hint = " (set JENKINS_PASSWORD)" if e.response.status_code in (401, 403) else ""
+        typer.echo(f"Jenkins answered HTTP {e.response.status_code} for {e.request.url.path}{hint}", err=True)
+        raise typer.Exit(2) from e
     finished = {b.number: b.duration_s for b in builds if b.result is not None}
     slow = {s.number: s for s in slow_builds(finished, k=sigma)}
     rows = []

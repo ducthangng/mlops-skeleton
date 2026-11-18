@@ -50,6 +50,7 @@ RULES: list[tuple[str, list[str]]] = [
         r"FAIL Required test coverage",
         r"^gate: .* -> FAIL",
         r"^ERROR tests/",
+        r"^\[(config_lint|contract|routing|cache|load)\] fail\b",   # qualify stage regressed vs golden
     ]),
 ]
 COMPILED = [(cat, [re.compile(p) for p in pats]) for cat, pats in RULES]

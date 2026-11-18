@@ -9,3 +9,4 @@
 | `real_test_drill01.log` | real: drill 01 branch build (failing unit test; later stages skipped) |
 | `real_lint_drill02.log` | real: drill 02 branch build (ruff F401/I001) |
 | `real_oom_drill11.log` | real: drill 11, Kaniko OOMKilled |
+| `real_qualify_partial.log` | real: qualify #10, SCENARIO=partial (routing regressions) |

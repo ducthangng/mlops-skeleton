@@ -1,0 +1,282 @@
+Started by user Jenkins Admin
+Obtained qualify/Jenkinsfile from git git://host.docker.internal/ml-ops-skeleton
+[Pipeline] Start of Pipeline
+[Pipeline] podTemplate
+[Pipeline] {
+[Pipeline] node
+Created Pod: kubernetes jenkins/qualify-10-ltkjm-tg6xm-txrtt
+[PodInfo] jenkins/qualify-10-ltkjm-tg6xm-txrtt
+	Container [jnlp] waiting [ContainerCreating] No message
+	Container [python] waiting [ContainerCreating] No message
+	Container [redis] waiting [ContainerCreating] No message
+	Pod [Pending][PodSandboxNotReady] no pod sandbox exists
+	Pod [Pending][ContainersNotReady] containers with unready status: [python redis jnlp]
+[PodInfo] jenkins/qualify-10-ltkjm-tg6xm-txrtt
+	Container [jnlp] waiting [ContainerCreating] No message
+	Container [python] waiting [ContainerCreating] No message
+	Container [redis] waiting [ContainerCreating] No message
+	Pod [Pending][ContainersNotReady] containers with unready status: [python redis jnlp]
+Agent qualify-10-ltkjm-tg6xm-txrtt is provisioned from template qualify_10-ltkjm-tg6xm
+---
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  annotations:
+    kubernetes.jenkins.io/last-refresh: "1794988056273"
+    buildUrl: "http://jenkins.jenkins.svc.cluster.local:8080/job/qualify/10/"
+    runUrl: "job/qualify/10/"
+  labels:
+    jenkins/jenkins-jenkins-agent: "true"
+    jenkins/label-digest: "61a9e5d67a430c64ed5267f627f863020bcf557d"
+    jenkins/label: "qualify_10-ltkjm"
+    kubernetes.jenkins.io/controller: "http___jenkins_jenkins_svc_cluster_local_8080x"
+  name: "qualify-10-ltkjm-tg6xm-txrtt"
+  namespace: "jenkins"
+spec:
+  containers:
+  - command:
+    - "sh"
+    - "-c"
+    - "trap 'exit 0' TERM; sleep infinity & wait"
+    image: "python:3.12-slim"
+    name: "python"
+    resources:
+      limits:
+        memory: "1536Mi"
+      requests:
+        cpu: "1"
+        memory: "512Mi"
+    volumeMounts:
+    - mountPath: "/cache"
+      name: "qualify-cache"
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - args:
+    - "--save"
+    - ""
+    - "--maxmemory"
+    - "64mb"
+    image: "redis:8.10.3-alpine"
+    name: "redis"
+    resources:
+      limits:
+        memory: "128Mi"
+      requests:
+        cpu: "100m"
+        memory: "32Mi"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  - env:
+    - name: "JENKINS_SECRET"
+      value: "********"
+    - name: "JENKINS_TUNNEL"
+      value: "jenkins-agent.jenkins.svc.cluster.local:50000"
+    - name: "JENKINS_AGENT_NAME"
+      value: "qualify-10-ltkjm-tg6xm-txrtt"
+    - name: "REMOTING_OPTS"
+      value: "-noReconnectAfter 1d"
+    - name: "JENKINS_NAME"
+      value: "qualify-10-ltkjm-tg6xm-txrtt"
+    - name: "JENKINS_AGENT_WORKDIR"
+      value: "/home/jenkins/agent"
+    - name: "JENKINS_URL"
+      value: "http://jenkins.jenkins.svc.cluster.local:8080/"
+    image: "jenkins/inbound-agent:3391.va_37fa_a_305d6d-1-jdk25"
+    name: "jnlp"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+    volumeMounts:
+    - mountPath: "/home/jenkins/agent"
+      name: "workspace-volume"
+      readOnly: false
+  nodeSelector:
+    kubernetes.io/os: "linux"
+  restartPolicy: "Never"
+  volumes:
+  - name: "qualify-cache"
+    persistentVolumeClaim:
+      claimName: "qualify-cache"
+  - emptyDir:
+      medium: ""
+    name: "workspace-volume"
+
+Running on qualify-10-ltkjm-tg6xm-txrtt in /home/jenkins/agent/workspace/qualify
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+Warning: CredentialId "" could not be found.
+Cloning the remote Git repository
+Avoid second fetch
+Checking out Revision 093ca1e2bd56b4837484dcc3ac453c568d1f8a49 (refs/remotes/origin/feat/cv-parity)
+Commit message: "fix(qualify): load warm-up, stage code in the cache key, NO_CACHE parameter"
+Cloning repository git://host.docker.internal/ml-ops-skeleton
+ > git init /home/jenkins/agent/workspace/qualify # timeout=10
+Fetching upstream changes from git://host.docker.internal/ml-ops-skeleton
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git fetch --tags --force --progress -- git://host.docker.internal/ml-ops-skeleton +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url git://host.docker.internal/ml-ops-skeleton # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/feat/cv-parity^{commit} # timeout=10
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 093ca1e2bd56b4837484dcc3ac453c568d1f8a49 # timeout=10
+ > git rev-list --no-walk 093ca1e2bd56b4837484dcc3ac453c568d1f8a49 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] container
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] timeout
+Timeout set to expire in 20 min
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Setup)
+[Pipeline] sh
++ pip install --quiet uv==0.11.28
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 26.3
+[notice] To update, run: pip install --upgrade pip
++ uv sync --frozen
+Using CPython 3.12.16 interpreter at: /usr/local/bin/python3.12
+Creating virtual environment at: .venv
+Downloading pygments (1.2MiB)
+Downloading pydantic-core (2.0MiB)
+Downloading ruff (9.7MiB)
+Downloading lupa (1.7MiB)
+Downloading numpy (15.0MiB)
+ Downloaded pygments
+ Downloaded lupa
+ Downloaded pydantic-core
+ Downloaded ruff
+ Downloaded numpy
+Prepared 37 packages in 1.25s
+Installed 37 packages in 134ms
+ + annotated-doc==0.0.5
+ + annotated-types==0.8.0
+ + anyio==4.15.1
+ + certifi==2026.7.22
+ + click==8.5.0
+ + coverage==7.17.3
+ + fakeredis==2.40.0
+ + fastapi==0.146.0
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + idna==3.20
+ + iniconfig==2.3.1
+ + lupa==2.8
+ + markdown-it-py==4.2.0
+ + mdurl==0.1.2
+ + numpy==2.5.4
+ + opentelemetry-api==1.45.1
+ + packaging==26.3
+ + pluggy==1.7.0
+ + prometheus-client==0.26.0
+ + pydantic==2.14.1
+ + pydantic-core==2.50.1
+ + pygments==2.21.0
+ + pytest==9.2.0
+ + pytest-cov==7.1.0
+ + pyyaml==6.0.3
+ + redis==8.1.0
+ + rich==15.0.0
+ + ruff==0.17.5
+ + shellingham==1.5.4
+ + sortedcontainers==2.4.0
+ + starlette==1.9.0
+ + typer==0.27.3
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.4
+ + uvicorn==0.54.0
++ rm -rf reports/qualify
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (config_lint)
+[Pipeline] sh
++ uv run python -m qualify.run --stage config_lint --scenario partial --out reports/qualify --cache-dir /cache
+[config_lint] pass in 0.01s  metrics={'routes': 3, 'errors': 0}
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (contract)
+[Pipeline] sh
++ uv run python -m qualify.run --stage contract --scenario partial --out reports/qualify --cache-dir /cache
+[contract] skipped: inputs unchanged (key 4dfbe59b9cfbb7f1)
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (routing)
+[Pipeline] sh
++ uv run python -m qualify.run --stage routing --scenario partial --out reports/qualify --cache-dir /cache
+[routing] fail in 0.02s  metrics={'accuracy': 0.91, 'changed': 6, 'improved': 0}
+   FAIL 'git revert vs git reset hard': was code, now default (label code)  (routing.log:1)
+   FAIL 'python list comprehension vs map speed': was code, now default (label code)  (routing.log:2)
+   FAIL 'convert curl command to python requests': was code, now default (label code)  (routing.log:3)
+   FAIL 'how to undo last commit without losing changes': was code, now default (label code)  (routing.log:4)
+   FAIL 'git stash pop conflict how to cancel': was code, now default (label code)  (routing.log:5)
+   FAIL 'docker compose environment variables not loading': was code, now default (label code)  (routing.log:6)
+   regressed accuracy: 0.91 vs golden 0.97 (limit 0.95)
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (cache)
+Stage "cache" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (load)
+Stage "load" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] sh
++ uv run python -m tools.logtriage qualify-diff --run reports/qualify --golden qualify/golden --out reports/qualify --no-fail
+# Qualification vs golden
+
+**7 regression(s)** (only what is new vs golden):
+
+- `routing` new failure (routing.log:1): `FAIL 'git revert vs git reset hard': was code, now default (label code)`
+- `routing` new failure (routing.log:2): `FAIL 'python list comprehension vs map speed': was code, now default (label code)`
+- `routing` new failure (routing.log:3): `FAIL 'convert curl command to python requests': was code, now default (label code)`
+- `routing` new failure (routing.log:4): `FAIL 'how to undo last commit without losing changes': was code, now default (label code)`
+- `routing` new failure (routing.log:5): `FAIL 'git stash pop conflict how to cancel': was code, now default (label code)`
+- `routing` new failure (routing.log:6): `FAIL 'docker compose environment variables not loading': was code, now default (label code)`
+- `routing` accuracy: 0.91 vs golden 0.97 (limit 0.95). Evidence: `accuracy 91.0% on 100 fixed prompts`
+
+Unchanged: config_lint, contract (cached)
+Not run (fail fast): cache, load
+[Pipeline] archiveArtifacts
+Archiving artifacts
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // timeout
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // container
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] }
+[Pipeline] // podTemplate
+[Pipeline] End of Pipeline
+ERROR: script returned exit code 1
+Finished: FAILURE
