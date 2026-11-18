@@ -12,3 +12,7 @@ wheels/
 # Tool caches
 .ruff_cache/
 .pytest_cache/
+.coverage
+reports/
+coverage.xml
+.execution.md.swp

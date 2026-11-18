@@ -1,0 +1,48 @@
+{"prompt": "TypeError: Cannot read properties of undefined (reading 'id')", "label": "code"}
+{"prompt": "golang goroutine memory leak pattern", "label": "code"}
+{"prompt": "docker build error exit code 127", "label": "code"}
+{"prompt": "fix sql unique constraint violation error", "label": "code"}
+{"prompt": "unhandled promise rejection warning nodejs", "label": "code"}
+{"prompt": "panic: runtime error: invalid memory address or nil pointer dereference", "label": "code"}
+{"prompt": "css tailwind center absolute element", "label": "code"}
+{"prompt": "fatal: refusing to merge unrelated histories", "label": "code"}
+{"prompt": "why does dividing 0 is not exists", "label": "math"}
+{"prompt": "solve for x: 3x^2 - 12x + 9 = 0", "label": "math"}
+{"prompt": "what is the integral of e^(-x^2)dx from 0 to infinity", "label": "math"}
+{"prompt": "prove that the sum of angles in a triangle is 180 degrees", "label": "math"}
+{"prompt": "derivative of ln(x^2 + 1)", "label": "math"}
+{"prompt": "is 91 a prime number", "label": "math"}
+{"prompt": "explain Bayes theorem in simple terms", "label": "math"}
+{"prompt": "what is the fibonacci sequence formula", "label": "math"}
+{"prompt": "calculate log base 2 of 1024", "label": "math"}
+{"prompt": "pythagorean theorem formula", "label": "math"}
+{"prompt": "hey what's up", "label": "chitchat"}
+{"prompt": "are you human or AI?", "label": "chitchat"}
+{"prompt": "what should i eat for lunch", "label": "chitchat"}
+{"prompt": "do you have any hobbies", "label": "chitchat"}
+{"prompt": "recommend a cool place to visit", "label": "chitchat"}
+{"prompt": "bored, talk to me", "label": "chitchat"}
+{"prompt": "thanks for the help!", "label": "chitchat"}
+{"prompt": "what is the meaning of life", "label": "chitchat"}
+{"prompt": "how is the weather in general", "label": "chitchat"}
+{"prompt": "bye see you later", "label": "chitchat"}
+{"prompt": "git stash pop conflict how to cancel", "label": "code"}
+{"prompt": "docker compose environment variables not loading", "label": "code"}
+{"prompt": "SQL syntax error near WHERE clause", "label": "code"}
+{"prompt": "nginx 502 bad gateway troubleshooting step", "label": "code"}
+{"prompt": "Error: ENOSPC: System limit for number of file watchers reached", "label": "code"}
+{"prompt": "convert json array to csv file typescript", "label": "code"}
+{"prompt": "find the standard deviation of [12, 15, 18, 20]", "label": "math"}
+{"prompt": "formula for combinations n choose k", "label": "math"}
+{"prompt": "is 0 an even or odd number", "label": "math"}
+{"prompt": "matrix multiplication 2x2 by 2x1 example", "label": "math"}
+{"prompt": "if a coin is tossed 3 times what is chance of getting 2 heads", "label": "math"}
+{"prompt": "simplify (x^2 - 4) / (x - 2)", "label": "math"}
+{"prompt": "what is your favorite movie character", "label": "chitchat"}
+{"prompt": "can you sing a song for me", "label": "chitchat"}
+{"prompt": "what do you think about cats vs dogs", "label": "chitchat"}
+{"prompt": "are you smarter than humans", "label": "chitchat"}
+{"prompt": "TypeError: 'dict' object is not callable", "label": "code"}
+{"prompt": "npm ERR! code ERESOLVE unable to resolve dependency tree", "label": "code"}
+{"prompt": "find roots of x^2 - 5x + 6 = 0", "label": "math"}
+{"prompt": "nice talking to you!", "label": "chitchat"}

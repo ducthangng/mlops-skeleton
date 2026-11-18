@@ -1,13 +1,38 @@
-# cosine similarity score threshold
-# if the calculated score below this, then the model do not proceed, but fall back to default
+# Routing config. The sha256 of this file is the config version: it is part of every
+# cache key, so editing this file invalidates old cache entries automatically.
+#
+# RuleClassifier (default, CLASSIFIER=rules):
+#   score(route) = number of distinct keywords + patterns that match the prompt
+#   (keywords: case-insensitive whole words/phrases; patterns: regex, case-sensitive).
+#   Highest score wins; ties go to the route listed first. score < min_score -> default.
+# MiniLMClassifier (optional, CLASSIFIER=minilm): max cosine similarity vs utterances,
+#   below `threshold` -> default. Utterances are also the "training" examples that
+#   tests/unit/test_routes_config.py checks for eval leakage.
+#
+# Rules were written from the utterances and evals/dev.jsonl only; evals/test.jsonl is held out.
+min_score: 1
 threshold: 0.40
 default:
   target: { model: small-chat, temperature: 0.7, max_tokens: 512 }
 routes:
-  # if the model decided, then it returns the name + the target {} in the resp.
   - name: code
-    target: { model: coder, temperature: 0.2, max_tokens: 1024 }
-    # utterances are the examples that model used to reference. 
+    target: { model: coder, fallback: small-chat, temperature: 0.2, max_tokens: 1024 }
+    keywords: [
+      python, golang, go program, goroutine, rust, typescript, javascript, nodejs, node, react, java,
+      sql, css, tailwind, flexbox, html, json, csv, yaml, regex, api, fastapi, django, flask, pandas,
+      numpy, docker, kubectl, kubernetes, nginx, redis, git, commit, merge, rebase, stash, npm, pip,
+      uv, vitest, pytest, compile, compiler, stack trace, function, struct, class, variable, module,
+      bug, debug, debugging, deadlock, memory leak, pointer, "null", segfault, syntax, exception,
+      middleware, cors, ssl, http, endpoint, script, code, deepcopy, borrow checker, lifetime,
+      requirements.txt, systemctl, logs, ttl, mock, useeffect, decimal places, format float
+    ]
+    patterns:
+      - '\b\w+(Error|Exception)\b'            # TypeError, NullPointerException, ...
+      - '(?i)\b(panic|fatal|segmentation fault):'
+      - '\bexit(ed)? (with )?code \d+'
+      - '[\w/@-]+\.(py|go|ts|js|rs|java|c|cpp|txt|ya?ml|json)\b'
+      - "'@?[\\w-]+/[\\w/-]+'"                 # module paths like '@components/Button'
+      - '\b[A-Z][A-Z_]{4,}\b'                  # CONSTANT_STYLE error codes (ENOSPC, CERTIFICATE_VERIFY_FAILED)
     utterances:
       - "write a python function to parse json"
       - "why does my go program deadlock"
@@ -31,7 +56,24 @@ routes:
       - "Fatal error: Allowed memory size exhausted"
 
   - name: math
-    target: { model: reasoner, temperature: 0.0, max_tokens: 2048 }
+    target: { model: reasoner, fallback: small-chat, temperature: 0.0, max_tokens: 2048 }
+    keywords: [
+      solve, equation, integral, integrate, integration, derivative, differentiate, limit, prove,
+      proof, induction, theorem, probability, chance, dice, coin, matrix, determinant, eigenvalue,
+      eigenvalues, eigenvectors, vector, vectors, cross product, standard deviation, variance, mean,
+      median, series, converge, diverge, taylor, sum of, area, volume, radius, angle, angles,
+      degrees, radians, triangle, hexagon, polygon, sphere, prime, factorial, combinations,
+      permutations, arrange, log, log2, logarithm, sqrt, square root, percent, fraction, simplify,
+      roots, remainder, divided, calculate, compute, formula, irrational, bayes, bayesian, extrema,
+      sin, cos, tan, arctan, ln, pi, x
+    ]
+    patterns:
+      - '\d+\s*[-+*/^%]\s*\d+'                 # 2 + 2, 7^100, 15%...
+      - '\b\d*[a-z]\s*\^\s*\(?\d'              # x^2, e^(3x)
+      - '\b[a-z]\s*[=<>]\s*[-\d]'              # x = 5
+      - '\b(sin|cos|tan|ln|log)\s*\('          # sin(x)
+      - '\d+%'
+      - '\[\[.*\]\]'                           # [[2, 5], [1, 3]] matrices
     utterances:
       - "solve this integral"
       - "prove that sqrt 2 is irrational"
@@ -53,8 +95,20 @@ routes:
       - "compute the Taylor series expansion of cos(x) around x = 0"
       - "solve the system of linear equations using Gaussian elimination"
       - "determine if the infinite series sum 1/n^2 converges or diverges"
+
   - name: chitchat
     target: { model: small-chat, temperature: 0.9, max_tokens: 256 }
+    keywords: [
+      hi, hello, hey, "what's up", how are you, good morning, good night, good evening, bye,
+      see you, talk to you, speak to you, thanks, thank you, joke, riddle, fun, funny, fact,
+      favorite, favourite, movie, music, book, song, sing, hobby, hobbies, weekend, birthday,
+      feeling, feel, tired, bored, sad, happy, bad day, nickname, opinion, think about, you,
+      yourself, are you, who made you, recommend, eat, lunch, dinner, ice cream, coffee, tea,
+      travel, weather, cats, dogs, surprise me, cheer me up, encouraging
+    ]
+    patterns:
+      - '(?i)^(hi|hey|hello|yo)\b'
+      - '!\s*$'
     utterances:
       - "hi how are you"
       - "tell me a joke"
@@ -76,16 +130,3 @@ routes:
       - "what's a good hobby to pick up on weekends"
       - "are you real or just an AI bot"
       - "bye, talk to you later!"
-
-
-# How does this file work?
-# Begin: First: embed all the utterances into vector (this is 384-d)
-# Begin: Second: Average each route's vectors into a centroid (a central reference point where the model can work with)
-
-# Inference: First: Embed the prompt
-# Second: Calculate cosine similarity between each route's centroid with the embeded prompt.
-# Third: Choose highest val -> compare to the threshold.
-# Fourth: Return the result.
-
-# TODO: threshold = 0.4 is temporary. Has to be tuned base on the data.
-# quality based-on utterance

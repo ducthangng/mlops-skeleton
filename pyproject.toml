@@ -1,19 +1,40 @@
 [project]
 name = "ml-ops-skeleton"
-version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+version = "0.2.0"
+description = "AI gateway: rule-based prompt routing, Redis exact + semantic cache, rate limits, GitOps delivery"
+readme = "Readme.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.146.0",
-    "numpy>=2.5.4",
-    "pydantic>=2.14.1",
-    "pyyaml>=6.0.3",
-    "sentence-transformers>=6.1.0",
-    "uvicorn>=0.54.0",
-    "torch>=2.14,<3",
-    "redis>=8.1.0",
+    "fastapi>=0.115",
+    "httpx>=0.28",
+    "numpy>=2.0",
+    "prometheus-client>=0.21",
+    "pydantic>=2.9",
+    "pyyaml>=6.0",
+    "redis>=6.0",
+    "uvicorn>=0.32",
 ]
+
+[project.optional-dependencies]
+# Optional ML implementations of the Classifier/Embedder interfaces. NOT in the default image.
+minilm = [
+    "sentence-transformers>=3.0",
+    "torch>=2.6,<3",
+]
+
+[dependency-groups]
+dev = [
+    "fakeredis[lua]>=2.26",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+]
+tools = [
+    "typer>=0.15",
+]
+
+[tool.uv]
+default-groups = ["dev", "tools"]
 
 [tool.uv.sources]
 torch = { index = "pytorch-cpu" }
@@ -22,3 +43,19 @@ torch = { index = "pytorch-cpu" }
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ["gateway", "web"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: needs a real Redis at REDIS_URL (default redis://localhost:6379/0)"]
+addopts = "-m 'not integration'"
+
+[tool.coverage.run]
+source = ["app", "mock_llm"]
+omit = ["app/minilm.py"]     # optional extra, not installed in CI
