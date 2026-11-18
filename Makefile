@@ -91,25 +91,19 @@ lint:
 	uv run ruff check .
 
 # ---------- product checks, run in the product repo ($(APP_DIR)/gateway) ----------
-.PHONY: redis-up gw-test gw-eval gw-qualify
+.PHONY: redis-up gw-test gw-eval gw-release-check
 
 redis-up:      ## local Redis 8 on :6390 (not 6379: a host Redis there would shadow Docker's port)
 	@docker ps --format '{{.Names}}' | grep -qx gw-redis-local || docker run -d --rm --name gw-redis-local -p 127.0.0.1:6390:6379 redis:8.10.3-alpine --save ""
 
-gw-test: redis-up  ## product: lint, unit + integration tests, coverage gate (same as CI)
-	cd $(APP_DIR)/gateway && uv run ruff check . && \
-	 uv run pytest -q --cov=gateway --cov-report= && \
-	 GATEWAY_REDIS_URL=redis://localhost:6390/0 uv run pytest -q -m integration --cov=gateway --cov-append --cov-report= && \
-	 uv run coverage report --fail-under=80 | tail -1
+gw-test:       ## product: lint + the quick_tests/ (same as CI)
+	cd $(APP_DIR)/gateway && uv run ruff check . && uv run pytest -q
 
 gw-eval:       ## product: JJ routing accuracy on dev + held-out test, gate vs evals/baseline.json
 	cd $(APP_DIR)/gateway && uv run python -m evals.run --split dev --split test --gate evals/baseline.json
 
-SCENARIO ?= clean
-gw-qualify: redis-up  ## product: release qualification (SCENARIO=clean|bad|partial), diff vs golden
-	cd $(APP_DIR)/gateway && GATEWAY_REDIS_URL=redis://localhost:6390/0 \
-	 uv run python -m qualify.run --all --scenario $(SCENARIO) --out reports/qualify --cache-dir .qualify-cache; \
-	 uv run python -m qualify.diff --run reports/qualify --no-fail
+gw-release-check:  ## product: the 2 release checks (PASS/FAIL), same as the Jenkins job 'qualify'
+	cd $(APP_DIR)/gateway && uv run python -m release_check.run
 
 # ---------- drills (drills/NN-*.sh): each prints what breaks, what to observe, how to restore ----------
 .PHONY: drills

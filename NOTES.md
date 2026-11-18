@@ -207,13 +207,13 @@ Status: **holds** = true for the current product + platform; **partly** = true w
 | CV bullet | status | file / command that proves it |
 |---|---|---|
 | 1. GitOps delivery; CI never needs cluster access; rollback = git revert | holds (full loop for the new image not run yet) | product `Jenkinsfile` (no kubectl; output = GHCR image + commit to `charts/ai-gateway/values-dev.yaml`), `mlops-router-gitops/argocd/gw-*.yaml`, `make drill-04` / `-fix`, `make drill-05` |
-| 2. pytest unit + integration in Jenkins on every commit; failing build never reaches the cluster | holds | product `gateway/tests/`, `Jenkinsfile` stages (coverage gate 80%, measured 84%), `make drill-01`, `make gw-test` |
+| 2. pytest unit + integration in Jenkins on every commit; failing build never reaches the cluster | partly holds: unit yes, integration no | product `gateway/quick_tests/` (3 small demo tests; full suite, integration stage and coverage gate archived in `gateway/deprecated/`; coverage now 7%, no gate), `Jenkinsfile` stage `Quick tests`, `make drill-01`, `make gw-test` |
 | 3. Prometheus metrics: latency, cache hit rate, rate-limit events | **retired** | the product has no `/metrics`; it records latency, cache status and routing per request in Postgres (`GET /api/requests`, `/api/stats`). Roadmap item |
 | 4. FastAPI + Redis (+ Postgres) as Helm charts, values per env; cluster setup scripted in Bash | holds | `mlops-router-gitops/charts/ai-gateway/values-{dev,prod}.yaml`, `scripts/bootstrap.sh` (`make up`) |
-| 5. Classifies each prompt, forwards to a suitable model/config | holds | product `gateway/routing/`, `gateway/plugins/rules_router.py`, `routes.yaml`, `make gw-eval` (held-out 93.75%), qualify routing stage |
+| 5. Classifies each prompt, forwards to a suitable model/config | holds | product `gateway/routing/`, `gateway/plugins/rules_router.py`, `routes.yaml`, `make gw-eval` (held-out 93.75%), release check `routes_unchanged` |
 | 5b. … per-client rate limits | **retired** | not in the product |
-| 6. Semantic cache on local embeddings + vector search, measured | **retired** | the product has an exact Redis cache (`redis_cache.py`, qualify cache stage: 100% repeat hits, fail-open). Semantic numbers: `docs/archive/router-service/` |
-| 7. Release qualification: golden regression, fail fast, only new failures reported, cached stages | holds | product `gateway/qualify/`, `make gw-qualify SCENARIO=bad|partial`, `make drill-16` |
+| 6. Semantic cache on local embeddings + vector search, measured | **retired** | the product has an exact Redis cache (`redis_cache.py`, `quick_tests/test_cache.py`; the old release check stage measuring repeat hits is in `gateway/deprecated/`). Semantic numbers: `docs/archive/router-service/` |
+| 7. Release qualification: golden regression, fail fast, only new failures reported, cached stages | partly holds: golden regression yes; fail fast, new-failures-only report and cache are archived | product `gateway/release_check/run.py` (`routes_unchanged` vs `expected_routes.json`, `models_exist`), `make gw-release-check`, `make drill-16`; full tool in `gateway/deprecated/release_check/` |
 
 ## State left on this machine (2026-11-18)
 - Cluster: gw-dev / gw-prod still run the old router chart from GitHub `main` in ns router-dev / router-prod
@@ -221,4 +221,4 @@ Status: **holds** = true for the current product + platform; **partly** = true w
   gateway-dev / gateway-prod; router-dev / router-prod are then empty: `make retire-router CONFIRM=1`.
 - Jenkins: job `router` still exists until `make up` (then `ai-gateway` is created; delete `router` in the UI).
 - The image `ai-gateway:local` is loaded in the kind nodes (used to verify the chart and drills); ns `drills` deleted.
-- Local Docker container `gw-redis-local` (Redis 8 on 127.0.0.1:6390) for `make gw-test` / `gw-qualify`.
+- Local Docker container `gw-redis-local` (Redis 8 on 127.0.0.1:6390) for `make gw-test` / `gw-release-check`.

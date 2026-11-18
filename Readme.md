@@ -42,7 +42,7 @@ then commits the new image tag to the GitOps repo. ArgoCD sees that commit and d
 | `scripts/lib.sh` | helpers shared by the scripts; loads `.env` |
 | `drills/` | one file per drill (see below) |
 | `tools/logtriage/` | reads a Jenkins log and names the failure; the drills use it |
-| `tests/unit/` | tests for `logtriage` (`make test`). The product's tests are in `custom-ai-gateway/gateway/tests` (`make gw-test`) |
+| `tests/unit/` | tests for `logtriage` (`make test`). The product's tests are in `custom-ai-gateway/gateway/quick_tests` (`make gw-test`) |
 | `.env` | `GITHUB_USER`, `GITHUB_PAT` and LLM API keys. Gitignored; copy it from `.env.example` |
 
 Day to day:
@@ -79,7 +79,7 @@ Drills never change your working tree:
 | 10 | the GHCR credentials Secret is missing | branch builds still pass; `main` fails when it pushes the image |
 | 11 | Kaniko gets too little memory | the image build is OOMKilled (exit 137) |
 | 12 | a flaky test | the same commit passes one time and fails the next |
-| 16 | a bad release (`SCENARIO=bad` or `partial`) | release qualification catches it before it ships |
+| 16 | `routes.yaml` loses the keyword `joke` | quick tests stay green, the release check fails `routes_unchanged` |
 | **Deploy** | | |
 | 04 | a bad image tag in Git | ImagePullBackOff; the old pods keep serving; the fix is `git revert` |
 | 05 | a manual `kubectl scale` | ArgoCD resets the replica count to what Git says |
